@@ -298,8 +298,10 @@ NSDictionary *prefs = nil;
     UIView *bgView = MSHookIvar<UIView *>(self, "_backgroundView"); 
 
     // Dont use UserDefaults like this. Use the bool api. I am lazy. 
-    bgView.alpha = [[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultHideDock"]?:0 == 1 ? 0 : 1;
-    bgView.hidden = [[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultHideDock"]?:0 == 1 ? YES : NO;
+    if ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultHideDock"]) {
+        bgView.alpha = 0;
+        bgView.hidden = YES;
+    }
 }
 
 %end
