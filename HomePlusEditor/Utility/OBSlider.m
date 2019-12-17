@@ -7,7 +7,6 @@
 
 #import "OBSlider.h"
 
-
 @interface OBSlider ()
 
 @property (assign, readwrite) float scrubbingSpeed;

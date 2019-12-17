@@ -1,3 +1,15 @@
+//
+// HPResources.h
+// HomePlus
+//
+// Holds some images used everywhere in the tweak in base64 string format
+//
+// Authors: Kritanta
+// Created  Oct 2019
+//
+
+#import <UIKit/UIKit.h>
+
 @interface HPResources : NSObject
 + (UIImage *)tutorialOne;
 + (UIImage *)tutorialTwo;
@@ -12,4 +24,5 @@
 + (UIImage *)inAppBanner;
 + (UIImage *)inAppBannerNotched;
 + (UIImage *)inAppFooter;
++ (UIImage *)extensionHome;
 @end 

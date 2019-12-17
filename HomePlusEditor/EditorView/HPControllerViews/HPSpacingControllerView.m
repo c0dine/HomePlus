@@ -1,5 +1,6 @@
 //
 // HPSpacingControllerView.m
+// HomePlus
 //
 // Controller View for editing Horizontal/Vertical Spacing
 // H Spacing is oft refered to in this tweak as "Side Inset"
@@ -92,6 +93,21 @@ Properties:
 
     [super bottomSliderUpdated:sender];
 }
+
+
+- (void)handleTopResetButtonPress:(UIButton*)sender 
+{
+    [super handleTopResetButtonPress:sender];
+    self.topControl.value = 0;
+    [self topSliderUpdated:self.topControl];
+}
+- (void)handleBottomResetButtonPress:(UIButton*)sender 
+{
+    [super handleBottomResetButtonPress:sender];
+    self.bottomControl.value = 0;
+    [self bottomSliderUpdated:self.bottomControl];
+}
+
 
 
 @end

@@ -1,7 +1,9 @@
 //
 // HPOffsetControllerView.m
+// HomePlus
 // 
 // Control View for Editing Top/Left Offsets
+// This subclass also adds a label for info at the bottom of the screen
 //
 // Author:  Kritanta
 // Created: Dec 2019
@@ -95,5 +97,17 @@ Properties:
     [super bottomSliderUpdated:sender];
 }
 
+- (void)handleTopResetButtonPress:(UIButton*)sender 
+{
+    [super handleTopResetButtonPress:sender];
+    self.topControl.value = 0;
+    [self topSliderUpdated:self.topControl];
+}
+- (void)handleBottomResetButtonPress:(UIButton*)sender 
+{
+    [super handleBottomResetButtonPress:sender];
+    self.bottomControl.value = 0;
+    [self bottomSliderUpdated:self.bottomControl];
+}
 
 @end

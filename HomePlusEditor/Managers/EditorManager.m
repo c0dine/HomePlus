@@ -1,13 +1,14 @@
 //
-// EditorManager.m
+// EditorManager.h
 // HomePlus
 //
-// Manager for the Editor Views. Creates the editor and hides/shows it
+// Global manager for the Editor (and tutorial) views. 
 //
-// Created Oct 2019
-// Author: Kritanta
+// Maybe at some point this should be refactored to HPEditorManager :)
 //
-
+// Authors: Kritanta
+// Created  Oct 2019
+//
 
 #include "EditorManager.h"
 #include "HPEditorWindow.h"
@@ -73,8 +74,9 @@
 
     return self;
 }
--(void)loadUpImagesFromWallpaper:(UIImage *)image 
-    {
+
+- (void)loadUpImagesFromWallpaper:(UIImage *)image 
+{
     /*
     @property (nonatomic, retain) UIImage *wallpaper;
     @property (nonatomic, retain) UIImage *dynamicallyGeneratedSettingsHeaderImage;
@@ -87,9 +89,10 @@
 
     UIImage *a = [HPUtility isCurrentDeviceNotched]? [HPResources inAppBannerNotched] : [HPResources inAppBanner];
     UIImage *b = [[EditorManager sharedManager] blurredMoreBGImage];
+
     self.dynamicallyGeneratedSettingsHeaderImage = [HPUtility imageByCombiningImage:b withImage:a];
 }
--(UIImage *)bdBackgroundImage
+- (UIImage *)bdBackgroundImage
 {   
     UIImage *sourceImage = self.wallpaper;
 
@@ -122,7 +125,7 @@
 
     return blurredAndDarkenedImage;
 }
--(UIImage *)blurredMoreBGImage
+- (UIImage *)blurredMoreBGImage
 {
     UIImage *sourceImage = self.wallpaper;
 
@@ -240,6 +243,7 @@
     [_editorViewController handleDoneSettingsButtonPress:_editorViewController.settingsDoneButton];
     [self hideTutorialView];
     _editorView.hidden = YES;
+    [[self editorViewController] unloadExtensionPanes];
     [[self editorViewController] reload];
 }
 
@@ -279,5 +283,5 @@
 {
 
 }
-@end
 
+@end

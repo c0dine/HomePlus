@@ -1,32 +1,20 @@
 //
 // HPIconCountControllerView.m
+// HomePlus
 //
 // Controller View for Editing Columns/Rows
+// This subclass hides the sliders and replaces them with buttons.
 // Maybe someday I should make a custom subclass for button controlls and such
 //
-// Author:  Kritanta
-// Created: Dec 2019
+// Authors: Kritanta
+// Created  Dec 2019
 //
 
 #include "HPIconCountControllerView.h"
+#include "HPUtility.h"
 #include "EditorManager.h"
 
 @implementation HPIconCountControllerView
-
-/*
-Properties: 
-    @property (nonatomic, retain) UIView *topView;
-    @property (nonatomic, retain) UIView *bottomView;
-
-    @property (nonatomic, retain) UILabel *topLabel;
-    @property (nonatomic, retain) OBSlider *topControl;
-    @property (nonatomic, retain) UITextField *topTextField;
-
-    @property (nonatomic, retain) UILabel *bottomLabel;
-    @property (nonatomic, retain) OBSlider *bottomControl;
-    @property (nonatomic, retain) UITextField *bottomTextField;
-*/
-
 
 - (instancetype)initWithFrame:(CGRect)frame
 {
@@ -52,11 +40,11 @@ Properties:
     self.topLabel.text = @"Rows";
     self.bottomLabel.text = @"Columns";
 
-    self.topLabel.frame = CGRectMake(0, -10, (0.706) * [[UIScreen mainScreen] bounds].size.width, (0.0615) * [[UIScreen mainScreen] bounds].size.height);
-    self.bottomLabel.frame = CGRectMake(0, -10, (0.706) * [[UIScreen mainScreen] bounds].size.width, 50);
+    self.topLabel.frame = CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width, -10, (0.706) * [[UIScreen mainScreen] bounds].size.width, (0.0615) * [[UIScreen mainScreen] bounds].size.height);
+    self.bottomLabel.frame = CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width, -10, (0.706) * [[UIScreen mainScreen] bounds].size.width, 50);
 
-    self.topTextField.frame = CGRectMake(([[UIScreen mainScreen] bounds].size.width / 2) - (((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2) - kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width + 7, (0.048) * [[UIScreen mainScreen] bounds].size.height, (0.1333) * [[UIScreen mainScreen] bounds].size.width, (0.0369) * [[UIScreen mainScreen] bounds].size.height);
-    self.bottomTextField.frame = CGRectMake([[UIScreen mainScreen] bounds].size.width / 2 -  ((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2 - kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width + 7, (0.0480) * [[UIScreen mainScreen] bounds].size.height, 50, 30);
+    self.topTextField.frame = CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width+([[UIScreen mainScreen] bounds].size.width / 2) - (((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2) - kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width + 7, (0.048) * [[UIScreen mainScreen] bounds].size.height, (0.1333) * [[UIScreen mainScreen] bounds].size.width, (0.0369) * [[UIScreen mainScreen] bounds].size.height);
+    self.bottomTextField.frame = CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width+[[UIScreen mainScreen] bounds].size.width / 2 -  ((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2 - kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width + 7, (0.0480) * [[UIScreen mainScreen] bounds].size.height, 50, 30);
 
     self.topControl.minimumValue = 1;
     self.topControl.maximumValue = 14;
@@ -74,7 +62,7 @@ Properties:
     forControlEvents:UIControlEventTouchUpInside];
     [rowMin setTitle:@"-" forState:UIControlStateNormal];
 
-    rowMin.frame = CGRectMake(0, (0.0369) *  [[UIScreen mainScreen] bounds].size.height, ((0.7) * [[UIScreen mainScreen] bounds].size.width / 2) - ((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2 , 40.0);
+    rowMin.frame = CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width, (0.0369) *  [[UIScreen mainScreen] bounds].size.height, ((0.7) * [[UIScreen mainScreen] bounds].size.width / 2) - ((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2 , 40.0);
     [self.topView addSubview:rowMin];
 
     UIButton *rowPlu = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -84,7 +72,7 @@ Properties:
     forControlEvents:UIControlEventTouchUpInside];
     [rowPlu setTitle:@"+" forState:UIControlStateNormal];
 
-    rowPlu.frame = CGRectMake(((0.7) * [[UIScreen mainScreen] bounds].size.width / 2) + ((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2, (0.0369) *  [[UIScreen mainScreen] bounds].size.height, ((0.7) * [[UIScreen mainScreen] bounds].size.width / 2) - ((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2 , 40.0);
+    rowPlu.frame = CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width+((0.7) * [[UIScreen mainScreen] bounds].size.width / 2) + ((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2, (0.0369) *  [[UIScreen mainScreen] bounds].size.height, ((0.7) * [[UIScreen mainScreen] bounds].size.width / 2) - ((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2 , 40.0);
     
     [self.topView addSubview:rowPlu];
 
@@ -94,7 +82,7 @@ Properties:
             action:@selector(columnMinus)
     forControlEvents:UIControlEventTouchUpInside];
     [colMin setTitle:@"-" forState:UIControlStateNormal];
-    colMin.frame = CGRectMake(0, (0.0369) *   [[UIScreen mainScreen] bounds].size.height, ((0.7) * [[UIScreen mainScreen] bounds].size.width / 2) - ((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2 , 40.0);
+    colMin.frame = CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width, (0.0369) *   [[UIScreen mainScreen] bounds].size.height, ((0.7) * [[UIScreen mainScreen] bounds].size.width / 2) - ((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2 , 40.0);
     [self.bottomView addSubview:colMin];
 
     UIButton *colPlu = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -117,7 +105,7 @@ Properties:
     rowPlu.clipsToBounds = YES;
 
     [colPlu setTitle:@"+" forState:UIControlStateNormal];
-    colPlu.frame = CGRectMake(((0.7) * [[UIScreen mainScreen] bounds].size.width / 2) + (((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2), (0.0369) *  [[UIScreen mainScreen] bounds].size.height, ((0.7) * [[UIScreen mainScreen] bounds].size.width / 2) - ((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2 , 40.0);
+    colPlu.frame = CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width+((0.7) * [[UIScreen mainScreen] bounds].size.width / 2) + (((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2), (0.0369) *  [[UIScreen mainScreen] bounds].size.height, ((0.7) * [[UIScreen mainScreen] bounds].size.width / 2) - ((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2 , 40.0);
         
     [self.bottomView addSubview:colPlu];
 
@@ -177,6 +165,19 @@ Properties:
     } completion:NULL];
        
     self.bottomTextField.text = [NSString stringWithFormat:@"%.0f", (CGFloat)((NSInteger)(floor([sender value])))];
+}
+
+- (void)handleTopResetButtonPress:(UIButton*)sender 
+{
+    [super handleTopResetButtonPress:sender];
+    self.topControl.value = [HPUtility defaultRows];
+    [self topSliderUpdated:self.topControl];
+}
+- (void)handleBottomResetButtonPress:(UIButton*)sender 
+{
+    [super handleBottomResetButtonPress:sender];
+    self.bottomControl.value = 4;
+    [self bottomSliderUpdated:self.bottomControl];
 }
 
 

@@ -1,11 +1,18 @@
+//
+// HPControllerView.h
+// HomePlus
+//
+// Authors: Kritanta
+// Created  Oct 2019
+//
+
 #include <UIKit/UIKit.h>
-#include "HomePlus.h"
 #include "OBSlider.h"
 
 #define kLeftScreenBuffer 0.146
 #define kTopContainerTopAnchor 0.036
 #define kContainerHeight 0.123
-
+#define kResetButtonSize 25.0
 
 @interface HPControllerView : UIView
 
@@ -19,6 +26,9 @@
 @property (nonatomic, retain) UILabel *bottomLabel;
 @property (nonatomic, retain) OBSlider *bottomControl;
 @property (nonatomic, retain) UITextField *bottomTextField;
+
+@property (nonatomic, retain) UIButton *topResetButton;
+@property (nonatomic, retain) UIButton *bottomResetButton;
 
 - (void)layoutControllerView;
 
@@ -34,6 +44,9 @@
 - (void)bottomTextFieldEndedEditing:(UITextField *)textField;
 - (void)bottomTextFieldUpdated:(UITextField *)textField;
 
--(void)invertBottomTextField;
+- (void)invertBottomTextField;
+
+- (void)handleTopResetButtonPress:(UIButton*)sender;
+- (void)handleBottomResetButtonPress:(UIButton*)sender;
 
 @end

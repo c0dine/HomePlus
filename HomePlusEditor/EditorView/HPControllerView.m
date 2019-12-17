@@ -1,14 +1,22 @@
 //
 // HPControllerView.m
+// HomePlus
 // 
 // Base to build controller views on. 
 // Subclasses of this go in ./ControllerViews
+//
+// Baseline for everything is sliders. 
+// Even if the sliders are hidden, use their handling methods as stubs
+//      to update the values. 
 // 
 // Author: Kritanta
 // Created: Oct 2019
 //
 
+#include "HomePlus.h"
+#include "HPResources.h"
 #include "HPControllerView.h"
+#include <AudioToolbox/AudioToolbox.h>
 @implementation HPControllerView 
 
 /*
@@ -42,13 +50,13 @@ Properties:
 {
     // Top View
     self.topView = [
-            [UIView alloc] initWithFrame: CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width,
+            [UIView alloc] initWithFrame: CGRectMake(0,
                                                     kTopContainerTopAnchor * [[UIScreen mainScreen] bounds].size.height, 
                                                     [[UIScreen mainScreen] bounds].size.width, 
                                                     kContainerHeight * [[UIScreen mainScreen] bounds].size.height)];
 
     // Top Label
-    self.topLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, (0.706) * [[UIScreen mainScreen] bounds].size.width, (0.0615) * [[UIScreen mainScreen] bounds].size.height)];
+    self.topLabel = [[UILabel alloc] initWithFrame:CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width, 0, (0.706) * [[UIScreen mainScreen] bounds].size.width, (0.0615) * [[UIScreen mainScreen] bounds].size.height)];
     [self.topLabel setText:@"Top Control"];
     self.topLabel.textColor=[UIColor whiteColor];
     self.topLabel.textAlignment=NSTextAlignmentCenter;
@@ -56,7 +64,7 @@ Properties:
 
 
     // Top Text Field. 
-    self.topTextField = [[UITextField alloc] initWithFrame:CGRectMake((0.730) * [[UIScreen mainScreen] bounds].size.width, (0.048) * [[UIScreen mainScreen] bounds].size.height, (0.1333) * [[UIScreen mainScreen] bounds].size.width, (0.0369) * [[UIScreen mainScreen] bounds].size.height)];
+    self.topTextField = [[UITextField alloc] initWithFrame:CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width+(0.730) * [[UIScreen mainScreen] bounds].size.width, (0.048) * [[UIScreen mainScreen] bounds].size.height, (0.1333) * [[UIScreen mainScreen] bounds].size.width, (0.0369) * [[UIScreen mainScreen] bounds].size.height)];
         
     [self.topTextField addTarget:self
             action:@selector(topTextFieldUpdated:)
@@ -89,7 +97,7 @@ Properties:
     [self.topTextField.inputAccessoryView addSubview:tminusButton];
 
     // Top Slider
-    self.topControl = [[OBSlider alloc] initWithFrame:CGRectMake(0, (0.0369) * [[UIScreen mainScreen] bounds].size.height, (0.7) * [[UIScreen mainScreen] bounds].size.width, (0.0615) * [[UIScreen mainScreen] bounds].size.height)];
+    self.topControl = [[OBSlider alloc] initWithFrame:CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width, (0.0369) * [[UIScreen mainScreen] bounds].size.height, (0.7) * [[UIScreen mainScreen] bounds].size.width, (0.0615) * [[UIScreen mainScreen] bounds].size.height)];
     [self.topControl addTarget:self action:@selector(topSliderUpdated:) forControlEvents:UIControlEventValueChanged];
     [self.topControl setBackgroundColor:[UIColor clearColor]];
     self.topControl.maximumTrackTintColor = [UIColor colorWithWhite:1.0 alpha:0.2];
@@ -105,16 +113,16 @@ Properties:
     //
 
     // Bottom View
-    self.bottomView = [[UIView alloc] initWithFrame:CGRectMake((0.146) * [[UIScreen mainScreen] bounds].size.width, (0.862) * [[UIScreen mainScreen] bounds].size.height, (1) * [[UIScreen mainScreen] bounds].size.width, (0.123) * [[UIScreen mainScreen] bounds].size.height)];
+    self.bottomView = [[UIView alloc] initWithFrame:CGRectMake(0, (0.862) * [[UIScreen mainScreen] bounds].size.height, (1) * [[UIScreen mainScreen] bounds].size.width, (0.123) * [[UIScreen mainScreen] bounds].size.height)];
 
     // Bottom Label
-    self.bottomLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, (0.706) * [[UIScreen mainScreen] bounds].size.width, 50)];
+    self.bottomLabel = [[UILabel alloc] initWithFrame:CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width, 0, (0.706) * [[UIScreen mainScreen] bounds].size.width, 50)];
     [self.bottomLabel setText:@"Bottom Control"];
     self.bottomLabel.textColor=[UIColor whiteColor];
     self.bottomLabel.textAlignment=NSTextAlignmentCenter;
 
     // Bottom Text Field
-    self.bottomTextField = [[UITextField alloc] initWithFrame:CGRectMake((0.730) * [[UIScreen mainScreen] bounds].size.width, (0.048) * [[UIScreen mainScreen] bounds].size.height, 50, 30)];
+    self.bottomTextField = [[UITextField alloc] initWithFrame:CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width+(0.730) * [[UIScreen mainScreen] bounds].size.width, (0.048) * [[UIScreen mainScreen] bounds].size.height, 50, 30)];
     [self.bottomTextField addTarget:self
             action:@selector(bottomTextFieldUpdated:)
             forControlEvents:UIControlEventEditingChanged];
@@ -150,7 +158,7 @@ Properties:
 
 
 
-    self.bottomControl = [[OBSlider alloc] initWithFrame:CGRectMake(0, (0.0369) * [[UIScreen mainScreen] bounds].size.height, (0.700) * [[UIScreen mainScreen] bounds].size.width, 50)];
+    self.bottomControl = [[OBSlider alloc] initWithFrame:CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width, (0.0369) * [[UIScreen mainScreen] bounds].size.height, (0.700) * [[UIScreen mainScreen] bounds].size.width, 50)];
     [self.bottomControl addTarget:self action:@selector(bottomSliderUpdated:) forControlEvents:UIControlEventValueChanged];
     [self.bottomControl setBackgroundColor:[UIColor clearColor]];
     self.bottomControl.maximumTrackTintColor = [UIColor colorWithWhite:1.0 alpha:0.2];
@@ -171,6 +179,26 @@ Properties:
     [self.bottomView addSubview:self.bottomLabel];
     [self.bottomView addSubview:self.bottomControl];
     [self.bottomView addSubview:self.bottomTextField];
+
+    self.topResetButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.topResetButton addTarget:self 
+            action:@selector(handleTopResetButtonPress:)
+            forControlEvents:UIControlEventTouchUpInside];
+    UIImage *rsImage = [HPResources resetImage];
+    [self.topResetButton setImage:rsImage forState:UIControlStateNormal];
+    self.topResetButton.frame = CGRectMake(15, (0.0369) * [[UIScreen mainScreen] bounds].size.height, kResetButtonSize, kResetButtonSize);
+    self.topResetButton.alpha = 0.8;
+    [self.topView addSubview:self.topResetButton];
+
+    self.bottomResetButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.bottomResetButton addTarget:self 
+            action:@selector(handleBottomResetButtonPress:)
+            forControlEvents:UIControlEventTouchUpInside];
+    [self.bottomResetButton setImage:rsImage forState:UIControlStateNormal];
+    self.bottomResetButton.frame = CGRectMake(15, (0.0369) * [[UIScreen mainScreen] bounds].size.height, kResetButtonSize, kResetButtonSize);
+    self.bottomResetButton.alpha = 0.8;
+    [self.bottomView addSubview:self.bottomResetButton];
+
 
 }
 
@@ -262,6 +290,19 @@ Properties:
         self.bottomTextField.text = [NSString stringWithFormat:@"-%@", self.bottomTextField.text];
     }
     [self bottomTextFieldUpdated:self.bottomTextField];
+}
+
+#pragma mark Reset Buttons
+
+- (void)handleTopResetButtonPress:(UIButton*)sender 
+{
+    AudioServicesPlaySystemSound(1519);
+    // method stub for subclasses
+}
+- (void)handleBottomResetButtonPress:(UIButton*)sender 
+{
+    AudioServicesPlaySystemSound(1519);
+    // method stub for subclasses
 }
 
 @end

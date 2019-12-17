@@ -1,5 +1,6 @@
 //
 // HPScaleControllerView.m
+// HomePlus
 //
 // Controller View for editing Icon Scale/Alpha
 //
@@ -85,6 +86,20 @@ Properties:
 
     [super bottomSliderUpdated:sender];
     [[[EditorManager sharedManager] editorViewController] layoutAllSpringboardIcons];
+}
+
+
+- (void)handleTopResetButtonPress:(UIButton*)sender 
+{
+    [super handleTopResetButtonPress:sender];
+    self.topControl.value = 60;
+    [self topSliderUpdated:self.topControl];
+}
+- (void)handleBottomResetButtonPress:(UIButton*)sender 
+{
+    [super handleBottomResetButtonPress:sender];
+    self.bottomControl.value = 100;
+    [self bottomSliderUpdated:self.bottomControl];
 }
 
 

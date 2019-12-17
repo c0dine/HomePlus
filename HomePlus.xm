@@ -12,6 +12,7 @@
 
 #include <UIKit/UIKit.h>
 #include "EditorManager.h"
+#include "ExtensionManager.h"
 #include "HPManager.h"
 #include "HPUtility.h"
 #include "HomePlus.h"
@@ -179,6 +180,7 @@ NSDictionary *prefs = nil;
         return;
     }
 
+    [ExtensionManager sharedManager];
     HPEditorWindow *view = [[EditorManager sharedManager] editorView];
     [[[UIApplication sharedApplication] keyWindow] addSubview:view];
     HPEditorWindow *tview = [[EditorManager sharedManager] tutorialView];
@@ -298,7 +300,8 @@ NSDictionary *prefs = nil;
     UIView *bgView = MSHookIvar<UIView *>(self, "_backgroundView"); 
 
     // Dont use UserDefaults like this. Use the bool api. I am lazy. 
-    if ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultHideDock"]) {
+    if ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultHideDock"]) 
+    {
         bgView.alpha = 0;
         bgView.hidden = YES;
     }
@@ -1968,7 +1971,8 @@ NSDictionary *prefs = nil;
     {
         %orig(YES);
     }
-    else {
+    else 
+    {
         %orig(arg);
     }
 }
@@ -2506,6 +2510,7 @@ static void preferencesChanged()
 
 %ctor 
 {
+
     preferencesChanged();
 
     CFNotificationCenterAddObserver(

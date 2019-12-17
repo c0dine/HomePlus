@@ -12,7 +12,6 @@
 // Authors: Kritanta
 //
 
-#include <UIKit/UIKit.h>
 #include "HPResources.h"
 
 @implementation HPResources
@@ -131,5 +130,17 @@
     UIImage *ret = [UIImage imageWithData:imageData];
     return ret;
 }
+
+
++ (UIImage *)extensionHome {
+
+    NSURL *url = [NSURL URLWithString:@"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAACMElEQVRYhe2Wy04VQRCGv5GLISQCQkBEIYYEiAt3Ln0bdrJyY3TrWhe+gU+gD6ALNywAiZcFJiYSIBojxOBC4wUs00md5JyuZrqHMzMQMl8yOZnqrq7/VE93FQ0NJ0zmhxeR4yoaBh4CfcA94JOZkUCWdUoqS6AT9xa4qu/7wA1gx8yMUIXACeAVMOXZvwM3gQ/6fg14AIwC/4D3wF3goENQZiRZgQWeMRHZlqP5JiKjut5eYNYTP1aUAuJc4C8mpGVHRG6JyE8zIvIxJvCcsaQxCazp9sa4ArwEfgfm7RuLR6+xxHEH4jUwXsAnUz8fmzKPohm8DLwpKK4rimTQnb6VwGmtlNQMuoy9q1sciQIvaeYmzUj3hA5OIYEX9ZubMSPlsBBbO0+g2871ig/EiFahBTOimLqil6Vz3Ei858rgB3Ad2PZLXSiD41r46xLnGNSYs/5ASOBjvf3rZgh4lCJw0FjqY8CPFLqol4AxYE5L0QVtQqvgQNsy9+FtAXeiMdo6i34R6RORF6YHKY91jdF/VDcTymCLP95vHofAVx3PtCF1pfF8jg+awb/G2kboGyzyJxzPgWltJFrPlLb/T83sTnqM5RgCY9wGPrfNae3TLrAY8Y1ShsC8LTpM6fnyKEOguRoSx2oTWCmNwG45EwJNS1Yi0bVTBA4ZS3lE104RuGwsneSVs95IllaNJbBADNdh/ALmNVj7xeve93L8Xaf8TBPh+20C941HQ8NpAvgPjHueWpmID2QAAAAASUVORK5CYII="];
+
+    NSData *imageData = [NSData dataWithContentsOfURL:url];
+    UIImage *ret = [UIImage imageWithData:imageData];
+    return ret;
+}
+
+
 
 @end

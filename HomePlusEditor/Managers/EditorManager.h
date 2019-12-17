@@ -1,6 +1,19 @@
+//
+// EditorManager.h
+// HomePlus
+//
+// Global manager for the Editor (and tutorial) views. 
+//
+// Maybe at some point this should be refactored to HPEditorManager :)
+//
+// Authors: Kritanta
+// Created  Oct 2019
+//
+
 #import "HPEditorWindow.h"
 #import "HPEditorViewController.h"
 #include "HPTutorialViewController.h"
+
 @interface EditorManager : NSObject 
 
 + (instancetype)sharedManager;

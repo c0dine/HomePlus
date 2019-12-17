@@ -1,4 +1,22 @@
+//
+// HPUtility.m
+// HomePlus
+//
+// Utilities used across the tweak
+// TODO: refactor a "HPUtilities"
+//
+// Authors: Kritanta
+// Created  Dec 2019
+//
+
 #import "HPUtility.h"
+#import <sys/utsname.h>
+#import <version.h>
+#include <sandbox.h>
+#include <dlfcn.h>
+
+typedef CFPropertyListRef (*_CFPreferencesCopyValueWithContainerType)(CFStringRef key, CFStringRef applicationID, CFStringRef userName, CFStringRef hostName, CFStringRef containerPath);
+
 @implementation HPUtility
 
 +(BOOL)isCurrentDeviceNotched
@@ -208,6 +226,27 @@
     }
 
     return rows;
+}
+
++ (BOOL)writeToBundle:(NSString *)identifier atKey:(NSString *)key withValue:(id)value
+{
+    CFPreferencesAppSynchronize((CFStringRef)identifier);
+    CFPreferencesSetValue((CFStringRef)key, (CFPropertyListRef)value, (CFStringRef)identifier, CFSTR("mobile"), kCFPreferencesAnyHost);
+}
+
++(UIImage*)imageWithImage: (UIImage*) sourceImage scaledToWidth: (float) i_width
+{
+    float oldWidth = sourceImage.size.width;
+    float scaleFactor = i_width / oldWidth;
+
+    float newHeight = sourceImage.size.height * scaleFactor;
+    float newWidth = oldWidth * scaleFactor;
+
+    UIGraphicsBeginImageContext(CGSizeMake(newWidth, newHeight));
+    [sourceImage drawInRect:CGRectMake(0, 0, newWidth, newHeight)];
+    UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();    
+    UIGraphicsEndImageContext();
+    return newImage;
 }
 
 + (UIImage*)imageByCombiningImage:(UIImage*)firstImage withImage:(UIImage*)secondImage {

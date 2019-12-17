@@ -1,29 +1,23 @@
 //
 // HPEditorViewController.m
 // HomePlus
-//
-// Most of the UI code goes here. This handles all of the views that are brought up. 
-// Although it isn't the manager, think of this as the home-base for everything that happens
-//      once the editor view is activated.
+// 
+// View controller for the Editor and Home base for anything UI.
 // 
 // Created Oct 2019 
 // Authors: Kritanta
 //
 
 #include "HPEditorViewController.h"
+#import "ExtensionManager.h"
+#include "EditorManager.h"
 #include "HPOffsetControllerView.h"
 #include "HPSpacingControllerView.h"
 #include "HPIconCountControllerView.h"
 #include "HPScaleControllerView.h"
-#include "../../HomePlus.h"
 #include "HPUtility.h"
-#include "../Manager/EditorManager.h"
-#include "../Manager/HPManager.h"
-#include "../Utility/HPResources.h"
-#include "../Settings/HPSettingsTableViewController.h"
-#include "HPEditorViewNavigationTabBar.h"
-#include "../Utility/OBSlider.h"
-#include <UIKit/UIKit.h>
+#include "HPManager.h"
+#include "HPResources.h"
 #include <AudioToolbox/AudioToolbox.h>
 
 
@@ -45,15 +39,9 @@
 @property (nonatomic, retain) HPControllerView *activeView;
 @property (nonatomic, retain) UIButton *activeButton;
 
-@property (nonatomic, retain) UIButton *offsetButton;
-@property (nonatomic, retain) UIButton *spacerButton;
-@property (nonatomic, retain) UIButton *iconCountButton;
-@property (nonatomic, retain) UIButton *scaleButton;
-@property (nonatomic, retain) UIButton *settingsButton;
 @property (nonatomic, retain) UIButton *rootButton;
 @property (nonatomic, retain) UIButton *dockButton;
-@property (nonatomic, retain) UIButton *topResetButton;
-@property (nonatomic, retain) UIButton *bottomResetButton;
+
 @property (nonatomic, retain) UIButton *settingsDoneButton;
 
 @property (nonatomic, retain) UILabel *leftOffsetLabel;
@@ -65,7 +53,7 @@
 #pragma mark Constants
 
 /* 
- * Oh boy. So, to get the UI to translate well to other devices, I gotthe
+ * So, to get the UI to translate well to other devices, I got the
  *      exact measurements on my X, and then whipped out a calculator. These
  *      are the values it gave me. Assume any of them are * by device screen w/h
  *
@@ -74,8 +62,6 @@
  *       this tweak can run on (SE)
  * 
 */
-
-// TODO: Finish turning these offsets into constants and maybe #def them instead in a header. 
 
 const CGFloat MENU_BUTTON_TOP_ANCHOR = 0.197; 
 const CGFloat MENU_BUTTON_SIZE = 40.0;
@@ -92,194 +78,314 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
 
 @implementation HPEditorViewController
 
-
-
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 
     BOOL _tcDockyInstalled = [[NSFileManager defaultManager] fileExistsAtPath:@"/var/lib/dpkg/info/me.nepeta.docky.list"];
     BOOL excludeForDocky = (_tcDockyInstalled && [[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationDock"]);
-    // Load latest values from the manager. Crucial. 
+
+    self.homeTabControllerViews = [[NSMutableArray alloc] initWithObjects:[self offsetControlView], [self spacingControlView], 
+                                                                        [self iconCountControlView], [self scaleControlView], 
+                                                                        [self settingsView], nil];
 
     // Add subviews to self. Any time viewDidLoad is called manually, unload these view beforehand
-    if (!excludeForDocky)
+    if (self.activeExtension == nil)
     {
         [self.view addSubview:[self offsetControlView]];
         [self.view addSubview:[self spacingControlView]];
         [self.view addSubview:[self iconCountControlView]];
-    }
-    [self.view addSubview:[self scaleControlView]];
-    [self.view addSubview:[self settingsView]];
-    // Load the view
-    if (!excludeForDocky)
-    {
+
+        [self.view addSubview:[self scaleControlView]];
+        [self.view addSubview:[self settingsView]];
+
+        // Load the view
         [self loadControllerView:[self offsetControlView]];
-        [self scaleControlView].alpha = 0;
+
+
+        self.tabBar = [self defaultTabBar];
+        
+        [self handleDefaultBarTabButtonPress:[self.tabBar subviews][0]];
     }
     else 
     {
-        [self loadControllerView:[self scaleControlView]];
+        self.tabBar = [self customExtensionTabBar];
+        @try 
+        {
+            [self handleExtensionTabBarButtonPress:[self.tabBar subviews][0]];
+        }
+        @catch (NSException *ex)
+        {
+            self.activeExtension = nil;
+            [self reload];
+            return;
+        }
     }
-    // Set the alpha of the rest to 0
-    [self spacingControlView].alpha = 0;
-    [self iconCountControlView].alpha = 0;
-    [self settingsView].alpha = 0;
 
-    self.tabBar = [[HPEditorViewNavigationTabBar alloc] initWithFrame:CGRectMake(
+    self.extensionBar = [self anExtensionBar];
+
+    // Set the alpha of the rest to 0
+
+    [self.view addSubview:self.tabBar];
+    [self.view addSubview:self.extensionBar];
+}
+
+- (HPEditorViewNavigationTabBar *)anExtensionBar
+{
+    HPEditorViewNavigationTabBar *extensionBar = [[HPEditorViewNavigationTabBar alloc] initWithFrame:CGRectMake(
+                                        7.5,
+                                        MENU_BUTTON_TOP_ANCHOR * [[UIScreen mainScreen] bounds].size.height,
+                                        MENU_BUTTON_SIZE, MENU_BUTTON_SIZE*9)];
+    
+    UIButton *homeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    UIImage *homeImage = [HPUtility imageWithImage:[HPResources extensionHome] scaledToWidth:30];
+    [homeButton setImage:homeImage forState:UIControlStateNormal];
+    homeButton.frame = CGRectMake(0,0, MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
+
+    [extensionBar addSubview:homeButton];
+
+    NSUInteger index = 1;
+
+    for (HPExtension *extension in [[ExtensionManager sharedManager] extensions])
+    {
+        UIButton *extensionButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        UIImage *extensionImage = extension.extensionIcon;
+        [extensionButton setImage:extensionImage forState:UIControlStateNormal];
+        extensionButton.frame = CGRectMake(0, MENU_BUTTON_SIZE * index, MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
+        [extensionBar addSubview:extensionButton];
+        index++;
+    }
+
+    for (UIButton *button in [extensionBar subviews])
+    {
+        [button addTarget:self 
+            action:@selector(handleExtensionBarButtonPress:)
+            forControlEvents:UIControlEventTouchUpInside];
+        [button addTarget:self
+            action:@selector(buttonPressDown:)
+            forControlEvents:UIControlEventTouchDown];
+    }
+
+    return extensionBar;
+}
+- (void)buttonPressDown:(id)arg 
+{
+    AudioServicesPlaySystemSound(1519);
+}
+- (void)unloadExtensionPanes
+{
+    if (self.activeExtension != nil)
+    {
+        [self loadExtension:nil];
+    }
+}
+- (HPEditorViewNavigationTabBar *)customExtensionTabBar
+{
+    HPEditorViewNavigationTabBar *extensionTabBar = [[HPEditorViewNavigationTabBar alloc] initWithFrame:CGRectMake(
+                                        [[UIScreen mainScreen] bounds].size.width - 47.5,
+                                         MENU_BUTTON_TOP_ANCHOR * [[UIScreen mainScreen] bounds].size.height,
+                                         MENU_BUTTON_SIZE, MENU_BUTTON_SIZE*9)];
+    
+    NSUInteger index = 0;
+
+    for (HPExtensionControllerView *pane in self.activeExtension.extensionControllerViews)
+    {
+        UIButton *paneButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        UIImage *paneImage = pane.paneIcon;
+        [paneButton setImage:paneImage forState:UIControlStateNormal];
+        paneButton.frame = CGRectMake(0, MENU_BUTTON_SIZE * index, MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
+        [extensionTabBar addSubview:paneButton];
+        index++;
+    }
+
+    for (UIButton *button in [extensionTabBar subviews])
+    {
+        [button addTarget:self 
+            action:@selector(handleExtensionTabBarButtonPress:)
+            forControlEvents:UIControlEventTouchUpInside];
+        [button addTarget:self
+            action:@selector(buttonPressDown:)
+            forControlEvents:UIControlEventTouchDown];
+    }
+
+    return extensionTabBar;
+
+}
+- (HPEditorViewNavigationTabBar *)defaultTabBar
+{
+    HPEditorViewNavigationTabBar *tabBar = [[HPEditorViewNavigationTabBar alloc] initWithFrame:CGRectMake(
                                         [[UIScreen mainScreen] bounds].size.width - 47.5,
                                          MENU_BUTTON_TOP_ANCHOR * [[UIScreen mainScreen] bounds].size.height,
                                          MENU_BUTTON_SIZE, MENU_BUTTON_SIZE*9)];
 
-    // Side Navigation Bar
-    // TODO: Add these as a subview of HPEditorViewNavigationTabBar and expand that class. 
-    // TODO: Generate these with a switch-case generator
-    self.offsetButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.offsetButton addTarget:self 
-            action:@selector(handleOffsetButtonPress:)
-            forControlEvents:UIControlEventTouchUpInside];
-    [self.offsetButton addTarget:self
-            action:@selector(buttonPressDown:)
-            forControlEvents:UIControlEventTouchDown];
+    UIButton *offsetButton = [UIButton buttonWithType:UIButtonTypeCustom];
     UIImage *offsetImage = [HPResources offsetImage];
-    [self.offsetButton setImage:offsetImage forState:UIControlStateNormal];
-    self.offsetButton.frame = CGRectMake(0,0, MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
+    [offsetButton setImage:offsetImage forState:UIControlStateNormal];
+    offsetButton.frame = CGRectMake(0,0, MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
     
-    if (!excludeForDocky) [self.tabBar addSubview:self.offsetButton];
+    [tabBar addSubview:offsetButton];
     // Since the offset view will be the first loaded, we dont need to lower alpha
     //      on the button. 
 
-    self.spacerButton = [UIButton buttonWithType:UIButtonTypeCustom];
-
-    [self.spacerButton addTarget:self 
-            action:@selector(handleSpacerButtonPress:)
-            forControlEvents:UIControlEventTouchUpInside];
-
-    [self.spacerButton addTarget:self
-            action:@selector(buttonPressDown:)
-            forControlEvents:UIControlEventTouchDown];
-
+    UIButton *spacerButton = [UIButton buttonWithType:UIButtonTypeCustom];
     UIImage *spacerImage = [HPResources spacerImage];
-    [self.spacerButton setImage:spacerImage forState:UIControlStateNormal];
+    [spacerButton setImage:spacerImage forState:UIControlStateNormal];
 
-    self.spacerButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE, MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
-    // Lower alpha on the rest. 
-    // TODO: const these
-    self.spacerButton.alpha = 0.5;
+    spacerButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE, MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
+
+    spacerButton.alpha = 0.5;
     
-    if (!excludeForDocky) [self.tabBar addSubview:self.spacerButton];
+    [tabBar addSubview:spacerButton];
 
-    self.iconCountButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.iconCountButton addTarget:self 
-            action:@selector(handleIconCountButtonPress:)
-            forControlEvents:UIControlEventTouchUpInside];
-    [self.iconCountButton addTarget:self
-            action:@selector(buttonPressDown:)
-            forControlEvents:UIControlEventTouchDown];
+    UIButton *iconCountButton = [UIButton buttonWithType:UIButtonTypeCustom];
     UIImage *iCImage = [HPResources iconCountImage];
-    [self.iconCountButton setImage:iCImage forState:UIControlStateNormal];
-    self.iconCountButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE * 2,  MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
-    self.iconCountButton.alpha = 0.5;
+    [iconCountButton setImage:iCImage forState:UIControlStateNormal];
+    iconCountButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE * 2,  MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
+    iconCountButton.alpha = 0.5;
     
-    if (!excludeForDocky) [self.tabBar addSubview:self.iconCountButton];
+    [tabBar addSubview:iconCountButton];
 
-
-    self.scaleButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.scaleButton addTarget:self 
-            action:@selector(handleScaleButtonPress:)
-            forControlEvents:UIControlEventTouchUpInside];
-    [self.scaleButton addTarget:self
-            action:@selector(buttonPressDown:)
-            forControlEvents:UIControlEventTouchDown];
+    UIButton *scaleButton = [UIButton buttonWithType:UIButtonTypeCustom];
     UIImage *sImage = [HPResources scaleImage];
-    [self.scaleButton setImage:sImage forState:UIControlStateNormal];
-    self.scaleButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE * 3,  MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
-    self.scaleButton.alpha = (excludeForDocky ? 1 : 0.5);
-    [self.tabBar addSubview:self.scaleButton];
+    [scaleButton setImage:sImage forState:UIControlStateNormal];
+    scaleButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE * 3,  MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
+    scaleButton.alpha = (0.5);
+
+    [tabBar addSubview:scaleButton];
     
-    self.settingsButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.settingsButton addTarget:self 
-            action:@selector(handleSettingsButtonPress:)
-            forControlEvents:UIControlEventTouchUpInside];
-    [self.settingsButton addTarget:self
-            action:@selector(buttonPressDown:)
-            forControlEvents:UIControlEventTouchDown];
+    UIButton *settingsButton = [UIButton buttonWithType:UIButtonTypeCustom];
     UIImage *settingsImage = [HPResources settingsImage];
-    [self.settingsButton setImage:settingsImage forState:UIControlStateNormal];
-    self.settingsButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE * (excludeForDocky ? 1 : 4), MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
-    self.settingsButton.alpha = 0.5;
+    [settingsButton setImage:settingsImage forState:UIControlStateNormal];
+    settingsButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE * (4), MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
+    settingsButton.alpha = 0.5;
     
-    [self.tabBar addSubview:self.settingsButton];
+    [tabBar addSubview:settingsButton];
 
-    self.rootButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.rootButton addTarget:self 
-            action:@selector(handleRootButtonPress:)
-            forControlEvents:UIControlEventTouchUpInside];
-    [self.rootButton addTarget:self
-            action:@selector(buttonPressDown:)
-            forControlEvents:UIControlEventTouchDown];
+    UIButton *rootButton = [UIButton buttonWithType:UIButtonTypeCustom];
     UIImage *rootImage = [HPResources rootImage];
-    [self.rootButton setImage:rootImage forState:UIControlStateNormal];
-    self.rootButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE * 7, MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
-    self.rootButton.alpha = 1;
-    [self.tabBar addSubview:self.rootButton];
+    [rootButton setImage:rootImage forState:UIControlStateNormal];
+    rootButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE * 7, MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
+    rootButton.alpha = 1;
 
-    self.dockButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.dockButton addTarget:self 
-            action:@selector(handleDockButtonPress:)
-            forControlEvents:UIControlEventTouchUpInside];
-    [self.dockButton addTarget:self
-            action:@selector(buttonPressDown:)
-            forControlEvents:UIControlEventTouchDown];
+    [tabBar addSubview:rootButton];
+
+    UIButton *dockButton = [UIButton buttonWithType:UIButtonTypeCustom];
     UIImage *dockImage = [HPResources dockImage];
-    [self.dockButton setImage:dockImage forState:UIControlStateNormal];
-    self.dockButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE * 8,  MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
-    self.dockButton.alpha = 0.5;
-    [self.tabBar addSubview:self.dockButton];
-    [self.view addSubview:self.tabBar];
+    [dockButton setImage:dockImage forState:UIControlStateNormal];
+    dockButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE * 8,  MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
+    dockButton.alpha = 0.5;
 
-    self.topResetButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.topResetButton addTarget:self 
-            action:@selector(handleTopResetButtonPress:)
+    [tabBar addSubview:dockButton];
+
+    for (UIButton *button in [tabBar subviews])
+    {
+        [button addTarget:self 
+            action:@selector(handleDefaultBarTabButtonPress:)
             forControlEvents:UIControlEventTouchUpInside];
-    [self.topResetButton addTarget:self
+        [button addTarget:self
             action:@selector(buttonPressDown:)
             forControlEvents:UIControlEventTouchDown];
-    UIImage *rsImage = [HPResources resetImage];
-    [self.topResetButton setImage:rsImage forState:UIControlStateNormal];
-    self.topResetButton.frame = CGRectMake(20,(0.084) * [[UIScreen mainScreen] bounds].size.height, RESET_BUTTON_SIZE, RESET_BUTTON_SIZE);
-    self.topResetButton.alpha = 0.8;
-    [self.view addSubview:self.topResetButton];
-
-    self.bottomResetButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.bottomResetButton addTarget:self 
-            action:@selector(handleBottomResetButtonPress:)
-            forControlEvents:UIControlEventTouchUpInside];
-    [self.bottomResetButton addTarget:self
-            action:@selector(buttonPressDown:)
-            forControlEvents:UIControlEventTouchDown];
-    [self.bottomResetButton setImage:rsImage forState:UIControlStateNormal];
-    self.bottomResetButton.frame = CGRectMake(20,(0.912) * [[UIScreen mainScreen] bounds].size.height, RESET_BUTTON_SIZE, RESET_BUTTON_SIZE);
-    self.bottomResetButton.alpha = 0.8;
-    [self.view addSubview:self.bottomResetButton];
+    }
     
-    self.activeButton = self.offsetButton;
+    self.activeButton = offsetButton;
 
+    return tabBar;
+}
+- (void)handleExtensionBarButtonPress:(UIButton *)button 
+{
+    NSUInteger index = [self.extensionBar.subviews indexOfObject:button];
+
+    if (index <= 0 || [[[ExtensionManager sharedManager] extensions] count] == 0)
+    {
+        [self loadExtension:nil];
+    }
+    else 
+    {
+        [self loadExtension:[[ExtensionManager sharedManager] extensions][index-1]];
+    }
 }
 
--(void)transitionViewsToActivationPercentage:(CGFloat)amount 
-{ // amount being float 0<x<1
+- (void)loadExtension:(HPExtension *)extension 
+{
+    self.activeExtension = extension;
+    [self reload];
+    [self transitionViewsToActivationPercentage:1];
+    int _ = 1;
+    for (HPExtensionControllerView *controller in extension.extensionControllerViews)
+    {
+        controller.alpha = 0;
+        if (_==1){controller.alpha=1.0;_=0;} // set the first controller to have a 1 alpha
+        [self.view addSubview:controller];
+    }
 
+    [self.view bringSubviewToFront:self.tabBar];
+    [self.view bringSubviewToFront:self.extensionBar];
+}
+- (void)handleExtensionTabBarButtonPress:(UIButton *)button 
+{
+    NSUInteger index = [self.tabBar.subviews indexOfObject:button];
+
+    [self loadControllerView:self.activeExtension.extensionControllerViews[index]];
+
+    self.activeButton.userInteractionEnabled = YES; 
+
+    [UIView animateWithDuration:.2 
+        animations:
+        ^{
+            button.alpha = 1;
+        }
+    ];
+
+    self.activeButton = button;
+    button.userInteractionEnabled = NO; 
+}
+
+- (void)handleDefaultBarTabButtonPress:(UIButton *)button
+{
+    NSUInteger index = [self.tabBar.subviews indexOfObject:button];
+
+    if (index < 4)
+    {
+        [self loadControllerView:[self.homeTabControllerViews objectAtIndex:index]];
+        self.activeButton.userInteractionEnabled = YES; 
+
+        [UIView animateWithDuration:.2 
+            animations:
+            ^{
+                self.activeButton.alpha = 0.5;
+                button.alpha = 1;
+            }
+        ];
+
+        self.activeButton = button;
+        button.userInteractionEnabled = NO; 
+    }
+    else if (index == 4)
+    {
+        [self handleSettingsButtonPress:button];
+    }
+    else if (index == 5)
+    {
+        [self handleRootButtonPress:button];
+    }
+    else 
+    {
+        [self handleDockButtonPress:button];
+    }
+}
+
+- (void)transitionViewsToActivationPercentage:(CGFloat)amount 
+{
     CGFloat fullAmt = (([[UIScreen mainScreen] bounds].size.height) * 0.15);
     CGFloat topTranslation = 0-fullAmt + (amount * fullAmt);
     CGFloat bottomTranslation = fullAmt - (amount * fullAmt);
     self.activeView.topView.transform = CGAffineTransformTranslate(CGAffineTransformIdentity, 0, topTranslation);
     self.activeView.bottomView.transform = CGAffineTransformTranslate(CGAffineTransformIdentity, 0, bottomTranslation);
-    self.topResetButton.transform = CGAffineTransformTranslate(CGAffineTransformIdentity, 0, topTranslation);
-    self.bottomResetButton.transform = CGAffineTransformTranslate(CGAffineTransformIdentity, 0, bottomTranslation);
     self.tabBar.transform = CGAffineTransformTranslate(CGAffineTransformIdentity, (50 - (50 * amount)), 0);
+    self.extensionBar.transform = CGAffineTransformTranslate(CGAffineTransformIdentity, (-50 + (50 * amount)), 0);
 }
--(void)transitionViewsToActivationPercentage:(CGFloat)amount withDuration:(CGFloat)duration 
+
+- (void)transitionViewsToActivationPercentage:(CGFloat)amount withDuration:(CGFloat)duration 
 {
     [UIView animateWithDuration:duration
         animations:
@@ -289,13 +395,12 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
             CGFloat bottomTranslation = fullAmt - (amount * fullAmt);
             self.activeView.topView.transform = CGAffineTransformTranslate(CGAffineTransformIdentity, 0, topTranslation);
             self.activeView.bottomView.transform = CGAffineTransformTranslate(CGAffineTransformIdentity, 0, bottomTranslation);
-            self.topResetButton.transform = CGAffineTransformTranslate(CGAffineTransformIdentity, 0, topTranslation);
-            self.bottomResetButton.transform = CGAffineTransformTranslate(CGAffineTransformIdentity, 0, bottomTranslation);
             self.tabBar.transform = CGAffineTransformTranslate(CGAffineTransformIdentity, (50 - (50 * amount)), 0);
+            self.extensionBar.transform = CGAffineTransformTranslate(CGAffineTransformIdentity, (-50 + (50 * amount)), 0);
         }
     ];
 }
--(void)reload 
+- (void)reload 
 {
     [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRoot"];
     [[HPManager sharedManager] saveCurrentLoadout];
@@ -313,13 +418,13 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
 #pragma mark Editing Location
 - (void)handleDockButtonPress:(UIButton*)sender
 {
-    if (self.dockButton.alpha == 1) return;
+    if (self.tabBar.subviews[6].alpha == 1) return;
     AudioServicesPlaySystemSound(1519);
     [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationDock"];
     [[HPManager sharedManager] saveCurrentLoadout];
 
-        [[self.view subviews]
-            makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    [[self.view subviews]
+        makeObjectsPerformSelector:@selector(removeFromSuperview)];
     _spacingControlView = nil;
     _offsetControlView = nil;
     _settingsView = nil;
@@ -329,15 +434,14 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
     // Reload views
     [self viewDidLoad];
 
-    self.dockButton.alpha = 1;
-    self.rootButton.alpha = 0.5;
+    self.tabBar.subviews[5].alpha = 0.5;
+    self.tabBar.subviews[6].alpha = 1;
 
     [[NSNotificationCenter defaultCenter] postNotificationName:kHighlightViewNotificationName object:nil];
 }
-
 - (void)handleRootButtonPress:(UIButton*)sender
 {
-    if (self.rootButton.alpha == 1) return;
+    if (self.tabBar.subviews[5].alpha == 1) return;
     AudioServicesPlaySystemSound(1519);
     [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRoot"];
     [[HPManager sharedManager] saveCurrentLoadout];
@@ -352,8 +456,8 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
     // Reload views
     [self viewDidLoad];
 
-    self.rootButton.alpha = 1;
-    self.dockButton.alpha = 0.5;
+    self.tabBar.subviews[5].alpha = 1;
+    self.tabBar.subviews[6].alpha = 0.5;
 
     [[NSNotificationCenter defaultCenter] postNotificationName:kHighlightViewNotificationName object:nil];
 }
@@ -362,6 +466,8 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
 
 - (HPControllerView *)settingsView 
 {
+    // settings table controller hacked into the usual hpcontrollerview model we use. 
+    // top view is the entire controller, bottom view is the header. 
     if (!_settingsView) 
     {
         _settingsView = [[HPControllerView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
@@ -371,7 +477,7 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
         [_settingsView addSubview:_settingsView.topView];
 
         UIView *tableHeaderView = [[UIView alloc] initWithFrame:CGRectMake(0,0,[[UIScreen mainScreen] bounds].size.width,(([[UIScreen mainScreen] bounds].size.width)/750)*300)];
-        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, [[UIScreen mainScreen] bounds].size.width,(([[UIScreen mainScreen] bounds].size.width)/750)*300)];
+        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0,0,[[UIScreen mainScreen] bounds].size.width,(([[UIScreen mainScreen] bounds].size.width)/750)*300)];
 
         imageView.image = [EditorManager sharedManager].dynamicallyGeneratedSettingsHeaderImage;
         imageView.contentMode = UIViewContentModeScaleAspectFill;
@@ -394,10 +500,9 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
         [_settingsView addSubview:_settingsView.bottomView];
     }
     _settingsView.hidden = NO;
+    _settingsView.alpha = 0;
     return _settingsView;
 }
-
-#pragma mark - HPControllerViews
 
 - (HPSettingsTableViewController *)tableViewController
 {
@@ -407,12 +512,15 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
     }
     return _tableViewController;
 }
-#pragma mark offset view
+
+#pragma mark - Controller Views
+
 - (HPControllerView *)offsetControlView 
 {
     if (!_offsetControlView) 
     {
         _offsetControlView = [[HPOffsetControllerView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+        _offsetControlView.alpha = 0;
     }
     return _offsetControlView;
 }
@@ -422,6 +530,7 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
     if (!_spacingControlView) 
     {
         _spacingControlView = [[HPSpacingControllerView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+        _spacingControlView.alpha = 0;
     }
     return _spacingControlView;
 }
@@ -431,18 +540,17 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
     if (!_iconCountControlView) 
     {
         _iconCountControlView = [[HPIconCountControllerView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+        _iconCountControlView.alpha = 0;
     }
     return _iconCountControlView;
 }
-
-#pragma mark spacing
-
 
 - (HPControllerView *)scaleControlView 
 {
     if (!_scaleControlView) 
     {
         _scaleControlView = [[HPScaleControllerView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+        _scaleControlView.alpha = 0;
     }
     return _scaleControlView;
 }
@@ -463,12 +571,6 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
 
 #pragma mark Button Handlers
 
-- (void)buttonPressDown:(UIButton*)sender
-{
-    // AudioServicesPlaySystemSound(1519);
-    // hack for the offset 4 column case
-    self.bottomResetButton.enabled = YES;
-}
 - (void)handleSettingsButtonPress:(UIButton*)sender
 {
     [self handleRootButtonPress:self.rootButton];
@@ -483,15 +585,8 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
     [UIView animateWithDuration:.2 
         animations:
         ^{
-            self.settingsButton.alpha = 0;
-            self.spacerButton.alpha = 0;
-            self.offsetButton.alpha = 0;
-            self.iconCountButton.alpha = 0;
-            self.scaleButton.alpha = 0;
-            self.topResetButton.alpha = 0;
-            self.bottomResetButton.alpha = 0;
-            self.rootButton.alpha = 0;
-            self.dockButton.alpha = 0;
+            self.tabBar.alpha = 0;
+            self.extensionBar.alpha = 0;
         }
     ];
     [[self tableViewController] opened];
@@ -503,168 +598,24 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
     [UIView animateWithDuration:.2 
         animations:
         ^{
-            self.settingsButton.alpha = 0.5;
-            self.spacerButton.alpha = 0.5;
-            self.iconCountButton.alpha = 0.5;
-            self.scaleButton.alpha = 0.5;
-            self.offsetButton.alpha = 1;
-            self.topResetButton.alpha = 0.8;
-            self.bottomResetButton.alpha = 0.8;
-            self.rootButton.alpha = 1;
-            self.dockButton.alpha = 0.5;
+            _settingsView.alpha = 0.0;
+            self.tabBar.alpha = 1;
+            self.extensionBar.alpha = 1;
         }
     ];
-
+    [self handleDefaultBarTabButtonPress:[self tabBar].subviews[0]];
     [[NSNotificationCenter defaultCenter] postNotificationName:kShowFloatingDockNotificationName object:nil];
     //[[NSNotificationCenter defaultCenter] postNotificationName:@"HPResetIconViews" object:nil];
-
-    [self handleOffsetButtonPress:self.offsetButton];
-}
-- (void)handleOffsetButtonPress:(UIButton*)sender 
-{
-    [self loadControllerView:[self offsetControlView]];
-    /*
-    if (((([[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultRootColumns"]?:4) == 4) && ([[HPUtility deviceName] isEqualToString:@"iPhone X"])) && (kCFCoreFoundationVersionNumber < 1600)) 
-    { TODO: THIS
-        self.leftOffsetLabel.text = @"Left Offset Disabled When\n4 Columns Selected on Notched Devices";
-        self.bottomOffsetValueInput.enabled = NO;
-        self.sideOffsetSlider.enabled = NO;
-        self.bottomResetButton.enabled = NO;
-    }
-    else
-    {
-        self.leftOffsetLabel.text = @"Set to 0 to enable auto-centered\n Horizontal Spacing";
-        self.bottomOffsetValueInput.enabled = YES;
-        self.sideOffsetSlider.enabled = YES;
-        self.bottomResetButton.enabled = YES;
-    }
-    */
-    self.activeButton.userInteractionEnabled = YES; 
-    [UIView animateWithDuration:.2 
-        animations:
-        ^{
-            sender.alpha = 1;
-            self.bottomResetButton.alpha = 0.8;
-        }
-    ];
-    
-    self.activeButton = sender; 
-    sender.userInteractionEnabled = NO; 
-    //self.tapBackView.hidden = NO;
-    
 }
 
-- (void)handleScaleButtonPress:(UIButton*)sender 
-{
-    [self loadControllerView:[self scaleControlView]];
-
-    self.activeButton.userInteractionEnabled = YES; 
-    [UIView animateWithDuration:.2 
-        animations:
-        ^{
-            sender.alpha = 1;
-            self.bottomResetButton.alpha = 0;
-        }
-    ];
-    self.activeButton = sender; 
-    sender.userInteractionEnabled = NO; 
-}
-
-- (void)handleTopResetButtonPress:(UIButton*)sender 
-{
-    AudioServicesPlaySystemSound(1519);
-    if (self.activeButton == self.offsetButton) 
-    {
-        CGFloat def = 0.0;
-        _offsetControlView.topTextField.text = [NSString stringWithFormat:@"%.0f", def];
-        [_offsetControlView topTextFieldUpdated:_offsetControlView.topTextField];
-    }
-    else if (self.activeButton == self.spacerButton)
-    {
-        CGFloat def = 0.0;
-        _spacingControlView.topTextField.text = [NSString stringWithFormat:@"%.0f", def];
-        [_spacingControlView topTextFieldUpdated:_spacingControlView.topTextField];
-    }
-    else if (self.activeButton == self.iconCountButton)
-    {
-        CGFloat def = [HPUtility defaultRows];
-        _iconCountControlView.topControl.value = def;
-        [_iconCountControlView topSliderUpdated:_iconCountControlView.topControl];
-    }
-    else if (self.activeButton == self.scaleButton)
-    {
-        CGFloat def = 60.0;
-        _scaleControlView.topTextField.text = [NSString stringWithFormat:@"%.0f", def];
-        [_scaleControlView topTextFieldUpdated:_scaleControlView.topTextField];
-    }
-}
-- (void)handleBottomResetButtonPress:(UIButton*)sender 
-{
-    AudioServicesPlaySystemSound(1519);
-    if (self.activeButton == self.offsetButton) 
-    {
-        CGFloat def = 0.0;
-        _offsetControlView.bottomTextField.text = [NSString stringWithFormat:@"%.0f", def];
-        [_offsetControlView bottomTextFieldUpdated:_offsetControlView.bottomTextField];
-    }
-    else if (self.activeButton == self.spacerButton)
-    {
-        CGFloat def = 0.0;
-        _spacingControlView.bottomTextField.text = [NSString stringWithFormat:@"%.0f", def];
-        [_spacingControlView bottomTextFieldUpdated:_spacingControlView.bottomTextField];
-    }
-    else if (self.activeButton == self.iconCountButton)
-    {
-        CGFloat def = 4.0;
-        _iconCountControlView.bottomControl.value = def;
-        [_iconCountControlView bottomSliderUpdated:_iconCountControlView.bottomControl];
-    }
-    else if (self.activeButton == self.scaleButton)
-    {
-        CGFloat def = 100.0;
-        _scaleControlView.bottomTextField.text = [NSString stringWithFormat:@"%.0f", def];
-        [_scaleControlView bottomTextFieldUpdated:_scaleControlView.bottomTextField];
-    }
-}
-
-- (void)handleSpacerButtonPress:(UIButton*)sender 
-{
-    [self loadControllerView:[self spacingControlView]];
-    self.activeButton.userInteractionEnabled = YES; 
-
-    [UIView animateWithDuration:.2 
-        animations:
-        ^{
-            sender.alpha = 1;
-            self.bottomResetButton.alpha = 0.8;
-        }
-    ];
-
-    self.activeButton = sender;
-    sender.userInteractionEnabled = NO; 
-}
-- (void)handleIconCountButtonPress:(UIButton*)sender 
-{
-    [self loadControllerView:[self iconCountControlView]];
-    self.activeButton.userInteractionEnabled = YES; 
-    [UIView animateWithDuration:.2 
-        animations:
-        ^{
-            sender.alpha = 1;
-            self.bottomResetButton.alpha = 0.8;
-        }
-    ];
-    self.activeButton = sender;
-    sender.userInteractionEnabled = NO; 
-}
 - (void)resignAllTextFields
 {
     // TODO: THIS
 }
+
 - (void)loadControllerView:(HPControllerView *)arg1 
 {
     [self resignAllTextFields];
-    self.activeButton.alpha = 0.5;
     AudioServicesPlaySystemSound(1519);
 
     [UIView animateWithDuration:.2 
@@ -674,9 +625,13 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
             arg1.alpha = 1;
         }
     ];
+    
 
     self.activeView = arg1;
+    [self transitionViewsToActivationPercentage:1];
 }
+
+#pragma mark Springboard Layout Updates 
 
 - (void)layoutAllSpringboardIcons
 {
@@ -689,6 +644,7 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
         }
     }
 }
+
 #pragma mark UIViewController overrides
 
 - (BOOL)shouldAutorotate 

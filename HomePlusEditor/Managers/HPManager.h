@@ -1,4 +1,18 @@
+//
+// HPManager.h
+// HomePlus
+//
+// Global manager for Data
+//
+// Currently gutted. This needs to be rewritten and reimplemented
+//      as using Springboard's UserDefaults is not the best practice. 
+//
+// Authors: Kritanta
+// Created  Oct 2019
+//
+
 #import <UIKit/UIKit.h>
+
 @interface HPManager : NSObject
 
 + (instancetype)sharedManager;

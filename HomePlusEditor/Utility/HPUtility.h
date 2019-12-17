@@ -1,8 +1,22 @@
+//
+// HPUtility.h
+// HomePlus
+//
+// Utilities used across the tweak
+// TODO: refactor a "HPUtilities"
+//
+// Authors: Kritanta
+// Created  Dec 2019
+//
 
-#import <sys/utsname.h>
+#include <UIKit/UIKit.h>
+
 @interface HPUtility : NSObject
+
 + (BOOL)isCurrentDeviceNotched;
 + (NSString *)deviceName;
 + (NSInteger)defaultRows;
++ (BOOL)writeToBundle:(NSString *)identifier atKey:(NSString *)key withValue:(id)value;
 + (UIImage*)imageByCombiningImage:(UIImage*)firstImage withImage:(UIImage*)secondImage;
++ (UIImage*)imageWithImage:(UIImage*)sourceImage scaledToWidth:(float)i_width;
 @end
