@@ -1607,7 +1607,8 @@ NSDictionary *prefs = nil;
         return x;
     }
 
-    if ([self.iconLocation isEqualToString:@"Dock"] && ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPdockConfigEnabled"]?:1) == 0) return x;
+    if ([self.iconLocation isEqualToString:@"Dock"] 
+            && (![[NSUserDefaults standardUserDefaults] boolForKey:@"HPdockConfigEnabled"])) return x;
 
     if (!_rtConfigured && _pfTweakEnabled) // Hack on iOS 13 to allow adding more columns and rows in real time.
                                            //   For some reason, we cant increase columns/rows in runtime (w/o respring), 
@@ -1784,7 +1785,7 @@ NSDictionary *prefs = nil;
     UIEdgeInsets x = %orig;
     if (!_pfTweakEnabled) return x;
 
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"HPdockConfigEnabled"]) return %orig;
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"HPdockConfigEnabled"]) return %orig;
 
     return [[[self layout] layoutConfiguration] portraitLayoutInsets];
 }
@@ -1796,7 +1797,7 @@ NSDictionary *prefs = nil;
 - (CGFloat)horizontalIconPadding
 {
     if (_tcDockyInstalled) return %orig;
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"HPdockConfigEnabled"]) return %orig;
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"HPdockConfigEnabled"]) return %orig;
     if (_pfTweakEnabled) return [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", @"Dock", @"SideInset"]];
 
     return %orig;
@@ -1805,7 +1806,7 @@ NSDictionary *prefs = nil;
 {
     if (_tcDockyInstalled) return %orig;
 
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"HPdockConfigEnabled"]) return %orig;
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"HPdockConfigEnabled"]) return %orig;
 
     SBIconListGridLayoutConfiguration *config = [[self layout] layoutConfiguration];
     return [config numberOfPortraitRows];
@@ -1814,7 +1815,7 @@ NSDictionary *prefs = nil;
 {
     if (_tcDockyInstalled) return %orig;
 
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"HPdockConfigEnabled"]) return %orig;
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"HPdockConfigEnabled"]) return %orig;
 
     SBIconListGridLayoutConfiguration *config = [[self layout] layoutConfiguration];
     return [config numberOfPortraitColumns];

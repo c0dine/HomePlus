@@ -62,8 +62,8 @@ Properties:
     self.topControl.minimumValue = -400;
     self.topControl.maximumValue = 400;
 
-    self.bottomControl.minimumValue = -100.0;
-    self.bottomControl.maximumValue = 200.0;    
+    self.bottomControl.minimumValue = -200.0;
+    self.bottomControl.maximumValue = 400.0;    
 
     
     self.topControl.value = [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", x, @"VerticalSpacing"]];
