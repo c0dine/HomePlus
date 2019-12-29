@@ -19,7 +19,7 @@ typedef CFPropertyListRef (*_CFPreferencesCopyValueWithContainerType)(CFStringRe
 
 @implementation HPUtility
 
-+(BOOL)isCurrentDeviceNotched
++ (BOOL)isCurrentDeviceNotched
 {
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
     {
@@ -112,9 +112,10 @@ typedef CFPropertyListRef (*_CFPreferencesCopyValueWithContainerType)(CFStringRe
 
                               @"iPad4,1"   : @"iPad Air",          // 5th Generation iPad (iPad Air) - Wifi
                               @"iPad4,2"   : @"iPad Air",          // 5th Generation iPad (iPad Air) - Cellular
-                              @"iPad4,4"   : @"iPad Mini",         // (2nd Generation iPad Mini - Wifi)
-                              @"iPad4,5"   : @"iPad Mini",         // (2nd Generation iPad Mini - Cellular)
-                              @"iPad4,7"   : @"iPad Mini",         // (3rd Generation iPad Mini - Wifi (model A1599))
+                              @"iPad4,4"   : @"iPad Mini 2",         // (2nd Generation iPad Mini - Wifi)
+                              @"iPad4,5"   : @"iPad Mini 2",         // (2nd Generation iPad Mini - Cellular)
+                              @"iPad4,7"   : @"iPad Mini 3",         // (3rd Generation iPad Mini - Wifi (model A1599))
+                              @"iPad5,2"   : @"iPad Mini 4",
                               @"iPad6,7"   : @"iPad Pro (12.9\")", // iPad Pro 12.9 inches - (model A1584) 
                               @"iPad6,8"   : @"iPad Pro (12.9\")", // iPad Pro 12.9 inches - (model A1652) 
                               @"iPad6,3"   : @"iPad Pro (9.7\")",  // iPad Pro 9.7 inches - (model A1673)
@@ -142,6 +143,17 @@ typedef CFPropertyListRef (*_CFPreferencesCopyValueWithContainerType)(CFStringRe
     }
 
     return deviceName;
+}
+
++ (BOOL)deviceRotatable
+{
+    if ([[HPUtility deviceName] containsString:@"iPad"])
+        return YES;
+    
+    if ([[HPUtility deviceName] containsString:@"Plus"])
+        return YES;
+
+    return NO;
 }
 
 + (NSInteger)defaultRows
@@ -212,6 +224,7 @@ typedef CFPropertyListRef (*_CFPreferencesCopyValueWithContainerType)(CFStringRe
                               @"iPad4,4"   : @4,         // (2nd Generation iPad Mini - Wifi)
                               @"iPad4,5"   : @4,         // (2nd Generation iPad Mini - Cellular)
                               @"iPad4,7"   : @4,         // (3rd Generation iPad Mini - Wifi (model A1599))
+                              @"iPad5,2"   : @5,
                               @"iPad6,7"   : @5, // iPad Pro 12.9 inches - (model A1584) 
                               @"iPad6,8"   : @5, // iPad Pro 12.9 inches - (model A1652) 
                               @"iPad6,3"   : @5,  // iPad Pro 9.7 inches - (model A1673)

@@ -45,10 +45,7 @@ Properties:
 {
     [super layoutControllerView];
 
-    NSString *x = @"";
-    if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRoot"]) x = @"Root";
-    else if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationDock"]) x = @"Dock";
-    else x = @"Folder";
+    NSString *x = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
 
     self.topLabel.text = @"Top Offset";
     self.bottomLabel.text = @"Left Offset";
@@ -60,7 +57,7 @@ Properties:
     self.bottomControl.minimumValue = -400.0;
     self.bottomControl.maximumValue = 400.0;
 
-    self.leftOffsetLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, (0.0369) * [[UIScreen mainScreen] bounds].size.height + 30, (0.706) * [[UIScreen mainScreen] bounds].size.width, 50)];
+    self.leftOffsetLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, (0.0369) * [[UIScreen mainScreen] bounds].size.height + 30,[[UIScreen mainScreen] bounds].size.width, 50)];
     [self.leftOffsetLabel setText:@"Set to 0 to enable auto-centered\n Horizontal Spacing"];
     [self.leftOffsetLabel setFont:[UIFont systemFontOfSize:11]];
     self.leftOffsetLabel.numberOfLines = 2;

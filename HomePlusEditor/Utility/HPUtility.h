@@ -15,6 +15,7 @@
 
 + (BOOL)isCurrentDeviceNotched;
 + (NSString *)deviceName;
++ (BOOL)deviceRotatable;
 + (NSInteger)defaultRows;
 + (BOOL)writeToBundle:(NSString *)identifier atKey:(NSString *)key withValue:(id)value;
 + (UIImage*)imageByCombiningImage:(UIImage*)firstImage withImage:(UIImage*)secondImage;

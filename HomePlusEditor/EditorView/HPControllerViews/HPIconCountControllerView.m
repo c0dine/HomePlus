@@ -32,10 +32,7 @@
 {
     [super layoutControllerView];
 
-    NSString *x = @"";
-    if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRoot"]) x = @"Root";
-    else if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationDock"]) x = @"Dock";
-    else x = @"Folder";
+    NSString *x = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
 
     self.topLabel.text = @"Rows";
     self.bottomLabel.text = @"Columns";
@@ -157,11 +154,11 @@
 
     [[NSUserDefaults standardUserDefaults]  setFloat:sender.value
             forKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"Columns"]];
-    if ([x isEqualToString:@"Dock"]) [[NSNotificationCenter defaultCenter] postNotificationName:@"HPResetIconViews" object:nil];
+    if ([x isEqualToString:@"Dock"]) [[NSNotificationCenter defaultCenter] postNotificationName:@"HPlayoutIconViewsAnimated" object:nil];
     
     // Animation code credit to cuboid authors
     [UIView animateWithDuration:(0.15) delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"HPResetIconViews" object:nil];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"HPlayoutIconViewsAnimated" object:nil];
     } completion:NULL];
        
     self.bottomTextField.text = [NSString stringWithFormat:@"%.0f", (CGFloat)((NSInteger)(floor([sender value])))];

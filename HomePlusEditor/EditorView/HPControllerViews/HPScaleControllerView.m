@@ -43,10 +43,7 @@ Properties:
 {
     [super layoutControllerView];
 
-    NSString *x = @"";
-    if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRoot"]) x = @"Root";
-    else if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationDock"]) x = @"Dock";
-    else x = @"Folder";
+    NSString *x = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
 
     self.topLabel.text = @"Icon Scale";
     self.bottomLabel.text = @"Icon Alpha";

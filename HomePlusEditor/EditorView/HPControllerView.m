@@ -15,6 +15,7 @@
 
 #include "HomePlus.h"
 #include "HPResources.h"
+#include "EditorManager.h"
 #include "HPControllerView.h"
 #include <AudioToolbox/AudioToolbox.h>
 @implementation HPControllerView 
@@ -199,7 +200,11 @@ Properties:
     self.bottomResetButton.alpha = 0.8;
     [self.bottomView addSubview:self.bottomResetButton];
 
-
+    UILabel *location = [[UILabel alloc] initWithFrame:CGRectMake([[UIScreen mainScreen] bounds].size.width-300, [[UIScreen mainScreen] bounds].size.height-60, 280, 60)];
+    location.text = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
+    location.textAlignment = NSTextAlignmentRight;
+    [location setFont:[UIFont systemFontOfSize:13]];
+    [self addSubview:location];
 }
 
 #pragma mark Sliders 

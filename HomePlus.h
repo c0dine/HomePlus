@@ -58,7 +58,8 @@
 
 @interface SBIconListGridLayoutConfiguration
 
-@property (nonatomic, assign) NSString *iconLocation;
+@property (nonatomic, assign) NSString *assumedLocation;
+@property (nonatomic, retain) NSString *definiteLocation;
 @property (nonatomic, retain) NSDictionary *managerValues;
 @property (nonatomic, assign) UIEdgeInsets customInsets;
 
@@ -76,6 +77,7 @@
 
 
 @interface SBIconListFlowLayout : SBIconListLayout
+@property (nonatomic, retain) NSString *iconLocation;
 @end
 
 @interface SBEditingDoneButton : UIButton
@@ -92,6 +94,8 @@
 - (void)doneButtonTriggered:(id)button; 
 @property (nonatomic, retain) SBIconViewMap *iconViewMap;
 @property (nonatomic, retain) SBRootFolderView *contentView;
+- (BOOL)isSidebarPinned;
+- (BOOL)isSidebarVisible;
 @end
 
 
@@ -147,6 +151,8 @@
 - (NSString *)iconLocation;
 - (NSArray *)getDefaultValues;
 - (SBIconListFlowLayout *)layout;
+- (NSUInteger)numberOfDisplayedIconViews;
+- (NSUInteger)maximumIconCount;
 
 @end
 
@@ -292,4 +298,18 @@
 @property (nonatomic, assign) BOOL hitboxMaxed;
 @property (nonatomic, retain) HPHitboxView *hp_larger_hitbox;
 @property (nonatomic, retain) HPHitboxWindow *hp_larger_window;
+@end
+
+@interface SBFolderController : NSObject
+-(NSString *)presentedIconLocations;
+@end
+
+@interface SBIconController : UIViewController
++ (SBIconController *)sharedInstance;
+- (SBFolderController *)_openFolderController;
+- (SBRootFolderController *)_rootFolderController;
+@end
+
+@interface SBFloatingDockView : UIView
+@property (nonatomic, retain) UIView *backgroundView;
 @end

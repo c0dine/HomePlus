@@ -19,6 +19,7 @@
 #include "HPManager.h"
 #include "HPResources.h"
 #include <AudioToolbox/AudioToolbox.h>
+#import <objc/runtime.h>  
 
 
 @implementation HPEditorViewNavigationTabBar
@@ -81,6 +82,37 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    /*
+    if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRoot"] && UIDeviceOrientationIsLandscape([UIDevice currentDevice].orientation))
+    {
+        [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRootLandscape"];
+    }
+    else if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRootLandscape"] && UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation))
+    {
+        [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRoot"];
+    }
+
+    SBRootFolderController *controller = [[objc_getClass("SBIconController") sharedInstance] _rootFolderController];
+    if ([controller isSidebarPinned] && [controller isSidebarVisible])
+    {
+        if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRoot"] && UIDeviceOrientationIsLandscape([UIDevice currentDevice].orientation))
+        {
+            [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRootWithSidebarLandscape"];
+        }
+        if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRootLandscape"] && UIDeviceOrientationIsLandscape([UIDevice currentDevice].orientation))
+        {
+            [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRootWithSidebarLandscape"];
+        }
+        if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRootLandscape"] && UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation))
+        {
+            [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRootWithSidebar"];
+        }
+        else if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRoot"] && UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation))
+        {
+            [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRootWithSidebar"];
+        }
+    }*/
+
 
     BOOL _tcDockyInstalled = [[NSFileManager defaultManager] fileExistsAtPath:@"/var/lib/dpkg/info/me.nepeta.docky.list"];
     BOOL excludeForDocky = (_tcDockyInstalled && [[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationDock"]);
@@ -260,23 +292,29 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
     settingsButton.alpha = 0.5;
     
     [tabBar addSubview:settingsButton];
+    if (![[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationFolder"])
+    {
 
-    UIButton *rootButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    UIImage *rootImage = [HPResources rootImage];
-    [rootButton setImage:rootImage forState:UIControlStateNormal];
-    rootButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE * 7, MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
-    rootButton.alpha = 1;
+        UIButton *rootButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        UIImage *rootImage = [HPResources rootImage];
+        [rootButton setImage:rootImage forState:UIControlStateNormal];
+        rootButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE * 7, MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
+        rootButton.alpha = 1;
 
-    [tabBar addSubview:rootButton];
+        [tabBar addSubview:rootButton];
 
-    UIButton *dockButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    UIImage *dockImage = [HPResources dockImage];
-    [dockButton setImage:dockImage forState:UIControlStateNormal];
-    dockButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE * 8,  MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
-    dockButton.alpha = 0.5;
+        UIButton *dockButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        UIImage *dockImage = [HPResources dockImage];
+        [dockButton setImage:dockImage forState:UIControlStateNormal];
+        dockButton.frame = CGRectMake(0, 0 + MENU_BUTTON_SIZE * 8,  MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
+        dockButton.alpha = 0.5;
 
-    [tabBar addSubview:dockButton];
-
+        [tabBar addSubview:dockButton];
+    }
+    else 
+    {
+        iconCountButton.enabled = NO;
+    }
     for (UIButton *button in [tabBar subviews])
     {
         [button addTarget:self 
@@ -402,7 +440,6 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
 }
 - (void)reload 
 {
-    [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRoot"];
     [[HPManager sharedManager] saveCurrentLoadout];
 
     [[self.view subviews]
@@ -645,11 +682,18 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
     }
 }
 
+- (void)viewWillTransitionToSize:(CGSize)size 
+       withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
+{
+    [super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
+    [self reload];
+}
+
 #pragma mark UIViewController overrides
 
 - (BOOL)shouldAutorotate 
 {
-    return NO;
+    return [HPUtility deviceRotatable];
 }
 
 
