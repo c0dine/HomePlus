@@ -1155,6 +1155,15 @@ NSDictionary *prefs = nil;
 %end
 
 
+%hook SBFloatingDockView 
+- (void)layoutSubviews 
+{
+    %orig;
+    floatingDockWindow = self.superview.superview.superview.superview;
+}
+%end
+
+
 #pragma mark FloatyDock Handling
 
 %hook SBMainScreenActiveInterfaceOrientationWindow
@@ -1171,7 +1180,7 @@ NSDictionary *prefs = nil;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(fader:) name:kFadeFloatingDockNotificationName object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(fader:) name:kShowFloatingDockNotificationName object:nil];
 
-    floatingDockWindow = self;
+    //if ([self isActive]) floatingDockWindow = self;
 
     return o;
 }
@@ -1186,11 +1195,20 @@ NSDictionary *prefs = nil;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(fader:) name:kFadeFloatingDockNotificationName object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(fader:) name:kShowFloatingDockNotificationName object:nil];
 
-    floatingDockWindow = self;
+    //if ([self isActive]) floatingDockWindow = self;
+    
     
     return o;
 }
-
+- (BOOL)isActive
+{
+    BOOL x = %orig;
+    if (x)
+    {
+        //floatingDockWindow = self;
+    }
+    return x;
+}
 %new 
 - (void)fader:(NSNotification *)notification
 {

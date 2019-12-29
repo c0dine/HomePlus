@@ -205,8 +205,8 @@
 
 @interface _SBWallpaperWindow : UIView 
 @end
-
 @interface SBMainScreenActiveInterfaceOrientationWindow : UIView
+- (BOOL)isActive;
 @end
 
 
