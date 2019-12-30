@@ -610,7 +610,8 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
 
 - (void)handleSettingsButtonPress:(UIButton*)sender
 {
-    [self handleRootButtonPress:self.rootButton];
+    if (![[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationFolder"])
+        [self handleRootButtonPress:self.rootButton];
     [[HPManager sharedManager] saveCurrentLoadoutName];
     [[HPManager sharedManager] saveCurrentLoadout];
     [[HPManager sharedManager] loadCurrentLoadout]; // Will Save + Load
