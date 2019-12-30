@@ -159,12 +159,23 @@ NSDictionary *prefs = nil;
     if (enabled) 
     {   
         BOOL x = [[%c(SBIconController) sharedInstance] _openFolderController] != nil;
+
         if (x) 
             [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationFolder"];
         else
         {
             [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRoot"];
         }
+
+        if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRoot"] && UIDeviceOrientationIsLandscape([UIDevice currentDevice].orientation))
+        {
+            [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRootLandscape"];
+        }
+        else if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRootLandscape"] && UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation))
+        {
+            [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRoot"];
+        }
+
         [[[EditorManager sharedManager] editorViewController] reload];
         [[EditorManager sharedManager] showEditorView];
     }
@@ -1959,8 +1970,10 @@ NSDictionary *prefs = nil;
 
     if ([x.iconLocation containsString:@"Dock"])
         x.iconLocation = @"Dock";
+    if ([x.iconLocation containsString:@"Root"])
+        x.iconLocation = @"Root";
 
-    if ([x.iconLocation isEqualToString:@"Folder"]) return %orig;
+    ///if ([x.iconLocation isEqualToString:@"Folder"]) return %orig;
     return x;
 }
 
