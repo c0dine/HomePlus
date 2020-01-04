@@ -184,8 +184,78 @@ const int RESET_VALUES = 1;
 
 - (NSString *)titleForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.row == 0) return(@"Reset Values");
-    return (@"");
+    NSString *title = @"";
+    switch ( indexPath.section )
+    {
+        case 0:
+        {
+            switch ( indexPath.row )
+            {
+                case 0:
+                {
+                    title = [HPUtility localizedItem:@"HIDE_ICON_LABELS"];
+                    break;
+                }
+                case 1:
+                {
+                    title = [HPUtility localizedItem:@"HIDE_BADGES"];
+                    break;
+                }
+                case 2:
+                {
+                    title = [HPUtility localizedItem:@"HIDE_LABELS_FOLDERS"];
+                    break;
+                }
+            }
+            break;
+        }
+        case 1:
+        {
+            switch ( indexPath.row )
+            {
+                case 0:
+                {
+                    title = [HPUtility localizedItem:@"DOCK_CONFIG_ENABLED"];
+                    break;
+                }
+                case 1:
+                {
+                    title = [HPUtility localizedItem:@"HIDE_DOCK_BG"];
+                    break;
+                }
+                case 2:
+                {
+                    title = [HPUtility localizedItem:@"FORCE_IPX_DOCK"];
+                    break;
+                }
+            }
+            break;
+        }
+        case 2:
+        {
+            switch ( indexPath.row )
+            {
+                case 0:
+                {
+                    title = [HPUtility localizedItem:@"RESET_VALUES"];
+                    break;
+                }
+                case 1:
+                {
+                    title = [HPUtility localizedItem:@"APP_SWITCHER_DISABLES_EDITOR"];
+                    break;
+                }
+                case 2:
+                {
+                    title = [HPUtility localizedItem:@"RESPRING"];
+                    break;
+                }
+            }
+            break;
+        }
+    }
+
+    return title;
 }
 
 #pragma mark - Table View Data Source
@@ -212,33 +282,27 @@ const int RESET_VALUES = 1;
         }
         case 2: // Settings
         {
-            rows = 4;
-            break;
-        }
-        case 3: // Storage System (Disabled)
-        {
-            rows = 1;
+            rows = 3;
             break;
         }
     }
     return rows;
 }
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section 
+{
 
     NSString *sectionName;
     switch (section) 
     {
         case 0:
-            sectionName = NSLocalizedString(@"Icons", @"Icons");
+            sectionName = [HPUtility localizedItem:@"ICONS"];
             break;
         case 1:
-            sectionName = NSLocalizedString(@"Dock", @"Dock");
+            sectionName = [HPUtility localizedItem:@"DOCK"];
             break;
         case 2:
-            sectionName = NSLocalizedString(@"Settings", @"Settings");
-            break;
-        case 3:
-            sectionName = NSLocalizedString(@"Storage System (Advanced)", @"Storage System (Advanced)");
+            sectionName = [HPUtility localizedItem:@"SETTINGS"];
             break;
         default:
             sectionName = @"";
@@ -246,6 +310,7 @@ const int RESET_VALUES = 1;
     }    
     return sectionName;
 }
+
 - (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if ([cell respondsToSelector:@selector(tintColor)]) {
@@ -291,373 +356,148 @@ const int RESET_VALUES = 1;
         }
     }
 }
-- (HPTableCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+- (BOOL)storedStateForSwitchAtIndexPath:(NSIndexPath *)indexPath
 {
-    switch( [indexPath section] ) 
+    NSString *key = @"";
+
+    switch ( indexPath.section )
     {
-        case 0: // Icons
+        case 0:
         {
-            switch ( [indexPath row] )
-            {
-                case 0: 
-                {
-                    HPTableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SwitchCell"];
-
-                    if( cell == nil ) 
-                    {
-                        cell = [[HPTableCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"SwitchCell"];
-                        cell.textLabel.text = @"Hide Icon Labels";
-                        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                        UISwitch *switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
-                        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-                        cell.accessoryView = switchView;
-                        [switchView setOn:[[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultIconLabelsF"] animated:NO];
-                        [switchView addTarget:self action:@selector(iconLabelSwitchChanged:) forControlEvents:UIControlEventValueChanged];
-
-                        //[cell.layer setCornerRadius:10];
-
-                        [cell setBackgroundColor: [UIColor colorWithRed:10.0/255.0 green:10.0/255.0 blue:10.0/255.0 alpha:0.4]];//rgb(38, 37, 42)];
-                        //Border Color and Width
-                        [cell.layer setBorderColor:[UIColor blackColor].CGColor];
-                        [cell.layer setBorderWidth:0];
-
-                        //Set Text Col
-                        cell.textLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-                        cell.detailTextLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-
-                        cell.clipsToBounds = YES;
-                    }
-                    return cell;
-                }
-
-                case 1: 
-                {
-                    HPTableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SwitchCell"];
-
-                    if( cell == nil ) 
-                    {
-                        cell = [[HPTableCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"SwitchCell"];
-                        cell.textLabel.text = @"Hide Badges";
-                        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                        UISwitch *switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
-                        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-                        cell.accessoryView = switchView;
-                        [switchView setOn: [[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultIconBadges"] animated:NO];
-                        [switchView addTarget:self action:@selector(iconBadgeSwitchChanged:) forControlEvents:UIControlEventValueChanged];
-
-                        //[cell.layer setCornerRadius:10];
-
-                        [cell setBackgroundColor: [UIColor colorWithRed:10.0/255.0 green:10.0/255.0 blue:10.0/255.0 alpha:0.4]];//rgb(38, 37, 42)];
-                        //Border Color and Width
-                        [cell.layer setBorderColor:[UIColor blackColor].CGColor];
-                        [cell.layer setBorderWidth:0];
-
-                        //Set Text Col
-                        cell.textLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-                        cell.detailTextLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-
-                        cell.clipsToBounds = YES;
-                    }
-                    return cell;
-                }
-
-                case 2: 
-                {
-                    HPTableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SwitchCell"];
-
-                    if( cell == nil ) 
-                    {
-                        cell = [[HPTableCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"SwitchCell"];
-                        cell.textLabel.text = @"Hide Labels in Folders";
-                        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                        UISwitch *switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
-                        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-                        cell.accessoryView = switchView;
-                        [switchView setOn:[[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultIconLabelsF"] animated:NO];
-                        [switchView addTarget:self action:@selector(iconLabelFolderSwitchChanged:) forControlEvents:UIControlEventValueChanged];
-
-                        //[cell.layer setCornerRadius:10];
-
-                        [cell setBackgroundColor: [UIColor colorWithRed:10.0/255.0 green:10.0/255.0 blue:10.0/255.0 alpha:0.4]];//rgb(38, 37, 42)];
-                        //Border Color and Width
-                        [cell.layer setBorderColor:[UIColor blackColor].CGColor];
-                        [cell.layer setBorderWidth:0];
-
-                        //Set Text Col
-                        cell.textLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-                        cell.detailTextLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-
-                        cell.clipsToBounds = YES;
-                    }
-                    return cell;
-                }
-            }
-        }
-        case 1: // Dock
-        {
-            switch ( [indexPath row] )
-            {
-
-                case 0: 
-                {
-                    HPTableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SwitchCell"];
-
-                    if( cell == nil ) 
-                    {
-                        cell = [[HPTableCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"SwitchCell"];
-                        cell.textLabel.text = @"Dock Config Enabled";
-                        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                        UISwitch *switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
-                        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-                        cell.accessoryView = switchView;
-                        [switchView setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"HPdockConfigEnabled"] animated:NO];
-                        [switchView addTarget:self action:@selector(dockConfigSwitchChanged:) forControlEvents:UIControlEventValueChanged];
-
-                        //[cell.layer setCornerRadius:10];
-
-                        [cell setBackgroundColor: [UIColor colorWithRed:10.0/255.0 green:10.0/255.0 blue:10.0/255.0 alpha:0.4]];//rgb(38, 37, 42)];
-                        //Border Color and Width
-                        [cell.layer setBorderColor:[UIColor blackColor].CGColor];
-                        [cell.layer setBorderWidth:0];
-
-                        //Set Text Col
-                        cell.textLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-                        cell.detailTextLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-
-                        cell.clipsToBounds = YES;
-                    }
-                    return cell;
-                }
-
-                case 1: 
-                {
-                    HPTableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SwitchCell"];
-
-                    if( cell == nil ) 
-                    {
-                        cell = [[HPTableCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"SwitchCell"];
-                        cell.textLabel.text = @"Hide Dock BG";
-                        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                        UISwitch *switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
-                        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-                        cell.accessoryView = switchView;
-                        [switchView setOn:([[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultHideDock"]?:0) == 1  animated:NO];
-                        [switchView addTarget:self action:@selector(dockbGSwitchChanged:) forControlEvents:UIControlEventValueChanged];
-
-                        //[cell.layer setCornerRadius:10];
-
-                        [cell setBackgroundColor: [UIColor colorWithRed:10.0/255.0 green:10.0/255.0 blue:10.0/255.0 alpha:0.4]];//rgb(38, 37, 42)];
-                        //Border Color and Width
-                        [cell.layer setBorderColor:[UIColor blackColor].CGColor];
-                        [cell.layer setBorderWidth:0];
-
-                        //Set Text Col
-                        cell.textLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-                        cell.detailTextLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-
-                        cell.clipsToBounds = YES;
-                    }
-                    return cell;
-                }
-
-                case 2: 
-                {
-                    HPTableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SwitchCell"];
-
-                    if( cell == nil ) 
-                    {
-                        cell = [[HPTableCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"SwitchCell"];
-                        cell.textLabel.text = @"Force iPX Dock";
-                        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                        UISwitch *switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
-                        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-                        cell.accessoryView = switchView;
-                        [switchView setOn:([[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultModernDock"]?:0) == 1  animated:NO];
-                        [switchView addTarget:self action:@selector(modernDockSwitchChanged:) forControlEvents:UIControlEventValueChanged];
-
-                        //[cell.layer setCornerRadius:10];
-
-                        [cell setBackgroundColor: [UIColor colorWithRed:10.0/255.0 green:10.0/255.0 blue:10.0/255.0 alpha:0.4]];//rgb(38, 37, 42)];
-                        //Border Color and Width
-                        [cell.layer setBorderColor:[UIColor blackColor].CGColor];
-                        [cell.layer setBorderWidth:0];
-
-                        //Set Text Col
-                        cell.textLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-                        cell.detailTextLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-
-                        cell.clipsToBounds = YES;
-                    }
-                    return cell;
-                }
-            }
-        }
-        case 2: // Settings
-        {
-            switch ( [indexPath row] ) 
-            {
-                case 0: 
-                {
-                    static NSString *CellIdentifier = @"Cell";
-                    HPTableCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-                    if (!cell) 
-                    {
-                        cell = [[HPTableCell alloc] initWithFrame:CGRectZero reuseIdentifier:CellIdentifier];
-                        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-                        cell.textLabel.font = [UIFont systemFontOfSize:16.0];
-                    }
-                    
-                    cell.textLabel.text = [self titleForRowAtIndexPath:indexPath];
-                    
-                    //[cell.layer setCornerRadius:10];
-
-                    [cell setBackgroundColor: [UIColor colorWithRed:10.0/255.0 green:10.0/255.0 blue:10.0/255.0 alpha:0.4]];//rgb(38, 37, 42)];
-                    //Border Color and Width
-                    [cell.layer setBorderColor:[UIColor blackColor].CGColor];
-                    [cell.layer setBorderWidth:0];
-
-                    //Set Text Col
-                    cell.textLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-                    cell.detailTextLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-
-                    cell.clipsToBounds = YES;
-                    cell.hidden = NO;
-
-                    return cell;
-                }
-
-                case 1: 
-                {
-                    HPTableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SwitchCell"];
-
-                    if( cell == nil ) 
-                    {
-                        cell = [[HPTableCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"SwitchCell"];
-                        cell.textLabel.text = @"App Switcher Disables Editor";
-                        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                        UISwitch *switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
-                        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-                        cell.accessoryView = switchView;
-                        [switchView setOn:[[HPManager sharedManager] switcherDisables] animated:NO];
-                        [switchView addTarget:self action:@selector(switcherSwitchChanged:) forControlEvents:UIControlEventValueChanged];
-
-                        //[cell.layer setCornerRadius:10];
-
-                        [cell setBackgroundColor: [UIColor colorWithRed:10.0/255.0 green:10.0/255.0 blue:10.0/255.0 alpha:0.4]];//rgb(38, 37, 42)];
-                        //Border Color and Width
-                        [cell.layer setBorderColor:[UIColor blackColor].CGColor];
-                        [cell.layer setBorderWidth:0];
-
-                        //Set Text Col
-                        cell.textLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-                        cell.detailTextLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-
-                        cell.clipsToBounds = YES;
-                    }
-                    return cell;
-                }
-                case 2: 
-                {
-                    HPTableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SwitchCell"];
-
-                    if( cell == nil ) 
-                    {
-                        cell = [[HPTableCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"SwitchCell"];
-                        cell.textLabel.text = @"Update V. Spacing W/ Rows";
-                        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                        UISwitch *switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
-                        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-                        cell.accessoryView = switchView;
-                        [switchView setOn:[[HPManager sharedManager] vRowUpdates] animated:NO];
-                        [switchView addTarget:self action:@selector(vRowSwitchChanged:) forControlEvents:UIControlEventValueChanged];
-
-                        //[cell.layer setCornerRadius:10];
-
-                        [cell setBackgroundColor: [UIColor colorWithRed:10.0/255.0 green:10.0/255.0 blue:10.0/255.0 alpha:0.4]];//rgb(38, 37, 42)];
-                        //Border Color and Width
-                        [cell.layer setBorderColor:[UIColor blackColor].CGColor];
-                        [cell.layer setBorderWidth:0];
-
-                        //Set Text Col
-                        cell.textLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-                        cell.detailTextLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-
-                        cell.clipsToBounds = YES;
-                    }
-                    return cell;
-                }
-                case 3: 
-                {
-
-                    static NSString *CellIdentifier = @"Cell";
-                    HPTableCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-                    if (!cell) 
-                    {
-                        cell = [[HPTableCell alloc] initWithFrame:CGRectZero reuseIdentifier:CellIdentifier];
-                        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-                        cell.textLabel.font = [UIFont systemFontOfSize:16.0];
-                    }
-                    
-                    cell.textLabel.text = @"Respring";
-                    
-                    //[cell.layer setCornerRadius:10];
-
-                    [cell setBackgroundColor: [UIColor colorWithRed:10.0/255.0 green:10.0/255.0 blue:10.0/255.0 alpha:0.4]];//rgb(38, 37, 42)];
-                    //Border Color and Width
-                    [cell.layer setBorderColor:[UIColor blackColor].CGColor];
-                    [cell.layer setBorderWidth:0];
-
-                    //Set Text Col
-                    cell.textLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-                    cell.detailTextLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-
-                    cell.clipsToBounds = YES;
-                    cell.hidden = NO;
-
-                    return cell;
-                    
-                }
-            }
-        }
-        case 3: 
-        {
-            switch ([indexPath row]) 
+            switch ( indexPath.row )
             {
                 case 0:
                 {
-                    static NSString *CellIdentifier = @"SegmentedCell";
-                    HPTableCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-                    if (!cell) 
-                    {
-                        cell = [[HPTableCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"SegmentedCell"];
-                        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                        NSArray *itemArray = [NSArray arrayWithObjects: @"Filesystem", @"UserDefaults", nil];
-                        UISegmentedControl *segmentedControl = [[UISegmentedControl alloc] initWithItems:itemArray];
-                        segmentedControl.frame = CGRectMake(30, 5, 330, 30);
-                        [segmentedControl addTarget:self action:@selector(storageControlAction:) forControlEvents: UIControlEventValueChanged];
-                        segmentedControl.selectedSegmentIndex = [[HPManager sharedManager] useUserDefaults] ? 1 : 0;  
-                        cell.accessoryView = segmentedControl;
-                    }
-        
-
-                    [cell setBackgroundColor: [UIColor colorWithRed:10.0/255.0 green:10.0/255.0 blue:10.0/255.0 alpha:0.4]];//rgb(38, 37, 42)];
-                    //Border Color and Width
-                    [cell.layer setBorderColor:[UIColor blackColor].CGColor];
-                    [cell.layer setBorderWidth:0];
-
-                    //Set Text Col
-                    cell.textLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-                    cell.detailTextLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
-
-                    cell.clipsToBounds = YES;
-                    cell.hidden = NO;
-
-                    return cell;
+                    key = @"HPThemeDefaultIconLabels";
+                    break;
+                }
+                case 1:
+                {
+                    key = @"HPThemeDefaultIconBadges";
+                    break;
+                }
+                case 2:
+                {
+                    key = @"HPThemeDefaultIconLabelsF";
+                    break;
                 }
             }
+            break;
         }
-        break;
+        case 1:
+        {
+            switch ( indexPath.row )
+            {
+                case 0:
+                {
+                    key = @"HPdockConfigEnabled";
+                    break;
+                }
+                case 1:
+                {
+                    key = @"HPThemeDefaultHideDock";
+                    break;
+                }
+                case 2:
+                {
+                    key = @"HPThemeDefaultModernDock";
+                    break;
+                }
+            }
+            break;
+        }
+        case 2:
+        {
+            switch ( indexPath.row )
+            {
+                case 0:
+                {
+                    key = @"";
+                    break;
+                }
+                case 1:
+                {
+                    return [[HPManager sharedManager] switcherDisables];
+                    break;
+                }
+                case 2:
+                {
+                    key = @"";
+                    break;
+                }
+            }
+            break;
+        }
     }
+
+    return [[NSUserDefaults standardUserDefaults] objectForKey:key] 
+                ? [[NSUserDefaults standardUserDefaults] boolForKey:key]
+                : NO;
+}
+
+
+
+- (HPTableCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.section == 2 && (indexPath.row == 0 || indexPath.row == 2))
+    {   // Clickable Cells
+        static NSString *CellIdentifier = @"Cell";
+        HPTableCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        if (!cell) 
+        {
+            cell = [[HPTableCell alloc] initWithFrame:CGRectZero reuseIdentifier:CellIdentifier];
+            cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+            cell.textLabel.font = [UIFont systemFontOfSize:16.0];
+        }
+        
+        cell.textLabel.text = [self titleForRowAtIndexPath:indexPath];
+        
+        //[cell.layer setCornerRadius:10];
+
+        [cell setBackgroundColor: [UIColor colorWithRed:10.0/255.0 green:10.0/255.0 blue:10.0/255.0 alpha:0.4]];//rgb(38, 37, 42)];
+        //Border Color and Width
+        [cell.layer setBorderColor:[UIColor blackColor].CGColor];
+        [cell.layer setBorderWidth:0];
+
+        //Set Text Col
+        cell.textLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
+        cell.detailTextLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
+
+        cell.clipsToBounds = YES;
+        cell.hidden = NO;
+        return cell;
+    }
+    else 
+    {   // Switch Cells
+        HPTableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SwitchCell"];
+        if( cell == nil ) 
+        {
+            cell = [[HPTableCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"SwitchCell"];
+            cell.textLabel.text = [self titleForRowAtIndexPath:indexPath];
+            cell.selectionStyle = UITableViewCellSelectionStyleNone;
+            UISwitch *switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
+            cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+            cell.accessoryView = switchView;
+            [switchView setOn:[self storedStateForSwitchAtIndexPath:indexPath] animated:NO];
+            [switchView addTarget:self action:@selector(iconLabelSwitchChanged:) forControlEvents:UIControlEventValueChanged];
+
+            //[cell.layer setCornerRadius:10];
+
+            [cell setBackgroundColor: [UIColor colorWithRed:10.0/255.0 green:10.0/255.0 blue:10.0/255.0 alpha:0.4]];//rgb(38, 37, 42)];
+            //Border Color and Width
+            [cell.layer setBorderColor:[UIColor blackColor].CGColor];
+            [cell.layer setBorderWidth:0];
+
+            //Set Text Col
+            cell.textLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
+            cell.detailTextLabel.textColor = [UIColor whiteColor];//[prefs colorForKey:@"textTint"];
+
+            cell.clipsToBounds = YES;
+        }
+        return cell;
+    }
+    
+
     return nil;
 }
 - (void)storageControlAction:(UISegmentedControl *)segment 
@@ -666,6 +506,7 @@ const int RESET_VALUES = 1;
     }
     else 
     {
+
     }
 }
 - (void)dockConfigSwitchChanged:(UISwitch *)sender
@@ -739,8 +580,8 @@ const int RESET_VALUES = 1;
                 case 0: 
                 {
                     UIAlertController * alert = [UIAlertController
-                                    alertControllerWithTitle:@"Are you sure?"
-                                                    message:@"This will Reset Everything!"
+                                    alertControllerWithTitle:[HPUtility localizedItem:@"THIS_WILL_RESET"]
+                                                    message:[HPUtility localizedItem:@"ARE_YOU_SURE_RESET"]
                                             preferredStyle:UIAlertControllerStyleAlert];
                     UIAlertAction* yesButton = [UIAlertAction
                                         actionWithTitle:@"Yes"
@@ -754,7 +595,7 @@ const int RESET_VALUES = 1;
                                                 }];
 
                     UIAlertAction* noButton = [UIAlertAction
-                                            actionWithTitle:@"Nah"
+                                            actionWithTitle:@"No"
                                                     style:UIAlertActionStyleDefault
                                                     handler:^(UIAlertAction * action) {
                                                     //Handle no, thanks button                
