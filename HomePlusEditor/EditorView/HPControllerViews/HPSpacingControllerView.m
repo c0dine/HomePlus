@@ -16,6 +16,7 @@
 
 #include "HPSpacingControllerView.h"
 #include "EditorManager.h"
+#include "HPUtility.h"
 
 @implementation HPSpacingControllerView
 
@@ -51,10 +52,8 @@ Properties:
 
     NSString *x = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
 
-    self.topLabel.text = @"Vertical Spacing";
-    self.bottomLabel.text = @"Horizontal Spacing";
-
-
+    self.topLabel.text = [HPUtility localizedItem:@"VERTICAL_SPACING"];
+    self.bottomLabel.text = [HPUtility localizedItem:@"HORIZONTAL_SPACING"];
 
     self.topControl.minimumValue = -400;
     self.topControl.maximumValue = 400;

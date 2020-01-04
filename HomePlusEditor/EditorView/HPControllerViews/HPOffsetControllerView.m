@@ -11,6 +11,7 @@
 
 #include "HPOffsetControllerView.h"
 #include "EditorManager.h"
+#include "HPUtility.h"
 
 @implementation HPOffsetControllerView
 
@@ -47,8 +48,8 @@ Properties:
 
     NSString *x = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
 
-    self.topLabel.text = @"Top Offset";
-    self.bottomLabel.text = @"Left Offset";
+    self.topLabel.text = [HPUtility localizedItem:@"TOP_OFFSET"];
+    self.bottomLabel.text = [HPUtility localizedItem:@"LEFT_OFFSET"];;
 
 
     self.topControl.minimumValue = -100;
@@ -58,7 +59,7 @@ Properties:
     self.bottomControl.maximumValue = 400.0;
 
     self.leftOffsetLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, (0.0369) * [[UIScreen mainScreen] bounds].size.height + 30,[[UIScreen mainScreen] bounds].size.width, 50)];
-    [self.leftOffsetLabel setText:@"Set to 0 to enable auto-centered\n Horizontal Spacing"];
+    [self.leftOffsetLabel setText:[HPUtility localizedItem:@"SET_LEFT_TO_ZERO"]];
     [self.leftOffsetLabel setFont:[UIFont systemFontOfSize:11]];
     self.leftOffsetLabel.numberOfLines = 2;
     self.leftOffsetLabel.textColor=[UIColor whiteColor];

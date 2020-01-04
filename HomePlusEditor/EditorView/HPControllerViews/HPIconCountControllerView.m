@@ -34,8 +34,8 @@
 
     NSString *x = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
 
-    self.topLabel.text = @"Rows";
-    self.bottomLabel.text = @"Columns";
+    self.topLabel.text = [HPUtility localizedItem:@"ROWS"];
+    self.bottomLabel.text = [HPUtility localizedItem:@"COLUMNS"];
 
     self.topLabel.frame = CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width, -10, (0.706) * [[UIScreen mainScreen] bounds].size.width, (0.0615) * [[UIScreen mainScreen] bounds].size.height);
     self.bottomLabel.frame = CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width, -10, (0.706) * [[UIScreen mainScreen] bounds].size.width, 50);

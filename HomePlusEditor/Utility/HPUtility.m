@@ -278,4 +278,11 @@ typedef CFPropertyListRef (*_CFPreferencesCopyValueWithContainerType)(CFStringRe
     return image;
 }
 
++ (NSString *)localizedItem:(NSString *)key 
+{
+    NSBundle *tweakBundle = [NSBundle bundleWithPath:@"/Library/Application Support/HomePlus.bundle"];
+
+    return [tweakBundle localizedStringForKey:key value:@"" table:nil] ?: @"";
+}
+
 @end

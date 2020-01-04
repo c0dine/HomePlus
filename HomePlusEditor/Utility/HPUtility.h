@@ -20,4 +20,5 @@
 + (BOOL)writeToBundle:(NSString *)identifier atKey:(NSString *)key withValue:(id)value;
 + (UIImage*)imageByCombiningImage:(UIImage*)firstImage withImage:(UIImage*)secondImage;
 + (UIImage*)imageWithImage:(UIImage*)sourceImage scaledToWidth:(float)i_width;
++ (NSString *)localizedItem:(NSString *)key;
 @end

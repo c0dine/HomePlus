@@ -10,6 +10,7 @@
 
 #include "HPScaleControllerView.h"
 #include "EditorManager.h"
+#include "HPUtility.h"
 
 @implementation HPScaleControllerView
 
@@ -45,8 +46,8 @@ Properties:
 
     NSString *x = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
 
-    self.topLabel.text = @"Icon Scale";
-    self.bottomLabel.text = @"Icon Alpha";
+    self.topLabel.text = [HPUtility localizedItem:@"ICON_SCALE"];
+    self.bottomLabel.text = [HPUtility localizedItem:@"ICON_ALPHA"];
 
     self.topControl.minimumValue = 1;
     self.topControl.maximumValue = 100;
