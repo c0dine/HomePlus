@@ -1313,7 +1313,7 @@ NSDictionary *prefs = nil;
     self.hitboxMaxed = NO;
     self.hp_hitbox_window = [[HPHitboxWindow alloc] initWithFrame:CGRectMake(0, 0,  ([HPUtility isCurrentDeviceNotched] ?120:80), ([HPUtility isCurrentDeviceNotched] ?40:20))];
     _rtHitboxWindow = self.hp_hitbox_window;
-    self.hp_hitbox = [[UIView alloc] init];
+    self.hp_hitbox = [[HPHitboxView alloc] init];
     // This is useful for debugging hitbox locations on weird devices
     //self.hp_hitbox.backgroundColor = [UIColor.lightGrayColor colorWithAlphaComponent:0.5];
     //self.hp_hitbox_window.backgroundColor = [UIColor.blueColor colorWithAlphaComponent:0.5];
@@ -1330,7 +1330,7 @@ NSDictionary *prefs = nil;
     CGFloat screenWidth = self.frame.size.width;
 
     self.hp_larger_window = [[HPHitboxWindow alloc] initWithFrame:CGRectMake( (0.15*screenWidth), (0.15*screenHeight), (0.7*screenWidth), (0.7*screenHeight))];
-    self.hp_larger_hitbox = [[UIView alloc] init];
+    self.hp_larger_hitbox = [[HPHitboxView alloc] init];
     self.hp_larger_hitbox.frame = CGRectMake(0,0, (0.7*screenWidth), (0.7*screenHeight));
     [self.hp_larger_window setValue:@NO forKey:@"deliversTouchesForGesturesToSuperview"];
     [self.hp_larger_window addSubview:self.hp_larger_hitbox];
@@ -2389,7 +2389,7 @@ NSDictionary *prefs = nil;
     self.hitboxMaxed = NO;
     self.hp_hitbox_window = [[HPHitboxWindow alloc] initWithFrame:CGRectMake(0, 0, ([HPUtility isCurrentDeviceNotched] ?120:80), ([HPUtility isCurrentDeviceNotched] ?40:20))];
     _rtHitboxWindow = self.hp_hitbox_window;
-    self.hp_hitbox = [[UIView alloc] init];
+    self.hp_hitbox = [[HPHitboxView alloc] init];
     // This is useful for debugging hitbox locations on weird devices
     //self.hp_hitbox.backgroundColor = [UIColor.lightGrayColor colorWithAlphaComponent:0.5];
     //self.hp_hitbox_window.backgroundColor = [UIColor.blueColor colorWithAlphaComponent:0.5];
@@ -2408,7 +2408,7 @@ NSDictionary *prefs = nil;
 
 
     self.hp_larger_window = [[HPHitboxWindow alloc] initWithFrame:CGRectMake( (0.15*screenWidth), (0.15*screenHeight), (0.7*screenWidth), (0.7*screenHeight))];
-    self.hp_larger_hitbox = [[UIView alloc] init];
+    self.hp_larger_hitbox = [[HPHitboxView alloc] init];
     self.hp_larger_hitbox.frame = CGRectMake(0,0, (0.7*screenWidth), (0.7*screenHeight));
     [self.hp_larger_window setValue:@NO forKey:@"deliversTouchesForGesturesToSuperview"];
     [self.hp_larger_window addSubview:self.hp_larger_hitbox];
