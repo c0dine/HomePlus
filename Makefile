@@ -41,6 +41,16 @@ include $(THEOS_MAKE_PATH)/tweak.mk
 SUBPROJECTS += homeplusprefs
 include $(THEOS_MAKE_PATH)/aggregate.mk
 
+# You may recognize this code is similar to the default in preference makefiles
+# THEOS_STAGING_DIR, (as I understand it), acts as a "root filesystem" type
+# 		location where we can copy contents that are then accessible on 
+# 		device, mirroring the directory structure we create. 
+internal-stage::
+	# Make a HomePlus bundle directory for localizations
+	$(ECHO_NOTHING)mkdir -p $(THEOS_STAGING_DIR)/Library/Application\ Support/HomePlus.bundle/$(ECHO_END)
+	# Copy the Localizations folder contents into this bundle. 
+	$(ECHO_NOTHING)cp -a Localizations/. $(THEOS_STAGING_DIR)/Library/Application\ Support/HomePlus.bundle/$(ECHO_END)
+
 
 # If this tweak was compiled for iOS Simulator (It /does/ work), copy the
 # 		apropriate files to the simject directory
