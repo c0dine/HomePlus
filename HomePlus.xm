@@ -176,6 +176,19 @@ NSDictionary *prefs = nil;
             [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRoot"];
         }
 
+        SBRootFolderController *controller = [[objc_getClass("SBIconController") sharedInstance] _rootFolderController];
+        if ([controller isSidebarVisible] && [controller isSidebarEffectivelyVisible])
+        {
+            if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRoot"])
+            {
+                [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRootWithSidebar"];
+            }
+            else if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRootLandscape"])
+            {
+                [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRootWithSidebarLandscape"];
+            }
+        }
+
         [[[EditorManager sharedManager] editorViewController] reload];
         [[EditorManager sharedManager] showEditorView];
     }
@@ -1666,6 +1679,10 @@ NSDictionary *prefs = nil;
 {
     if (self.definiteLocation && [self.definiteLocation containsString:@"Dock"])
         self.definiteLocation = @"Dock";
+    if (![[HPUtility deviceName] containsString:@"iPad"] && [self.definiteLocation isEqualToString:@"RootWithSidebar"])
+    {
+        self.definiteLocation = @"Root";
+    }
     if (self.definiteLocation) return self.definiteLocation;
     if (self.assumedLocation) return self.assumedLocation;
     // Guess if it hasn't been set
@@ -1698,7 +1715,6 @@ NSDictionary *prefs = nil;
 
     if ([[self locationIfKnown] containsString:@"Dock"] && ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPdockConfigEnabled"]?:1) == 0) return x;
 
-
     if (_tcDockyInstalled && (x<=2 || x==100))return %orig;
 
     if (!_rtConfigured && _pfTweakEnabled) return kMaxRowAmount;
@@ -1709,7 +1725,10 @@ NSDictionary *prefs = nil;
 {
     NSInteger x = %orig;
 
-    if (!self.assumedLocation) return x;
+    if (![[HPUtility deviceName] containsString:@"iPad"] && [[self locationIfKnown] isEqualToString:@"RootWithSidebar"])
+    {
+        self.definiteLocation = @"Root";
+    }
 
     if ([[self locationIfKnown] containsString:@"Dock"] && ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPdockConfigEnabled"]?:1) == 0) return x;
 
@@ -1738,6 +1757,11 @@ NSDictionary *prefs = nil;
                         
     {
         return x;
+    }
+
+    if (![[HPUtility deviceName] containsString:@"iPad"] && [[self locationIfKnown] isEqualToString:@"RootWithSidebar"])
+    {
+        self.definiteLocation = @"Root";
     }
 
     if ([[self locationIfKnown] containsString:@"Dock"] 
@@ -1788,7 +1812,8 @@ NSDictionary *prefs = nil;
     return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LandscapeColumns"]]?:x;
 }
 - (UIEdgeInsets)landscapeLayoutInsets
-{   UIEdgeInsets x = %orig;
+{   
+    UIEdgeInsets x = %orig;
     if (!_pfTweakEnabled)
     {
         return x;
@@ -1797,7 +1822,11 @@ NSDictionary *prefs = nil;
     {
         [self locationIfKnown];
     }
-
+    NSLog(@"[HPDEBUG]: %@ - %@", [self locationIfKnown], NSStringFromUIEdgeInsets(x));
+    if (x.left < 70 && [[HPUtility deviceName] containsString:@"iPad"]) // hack fix, something is wrong
+    {
+        self.definiteLocation = @"RootWithSidebar";
+    }
     if ([[self locationIfKnown] isEqualToString:@"Dock"] && ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPdockConfigEnabled"]?:1) == 0) return x;
 
     if ([[self locationIfKnown] isEqualToString:@"FloatingDockSuggestions"] || [[self locationIfKnown] isEqualToString:@"FloatingDock"])
@@ -1832,15 +1861,23 @@ NSDictionary *prefs = nil;
 - (UIEdgeInsets)portraitLayoutInsets
 {
     UIEdgeInsets x = %orig;
+
     if (!_pfTweakEnabled)
     {
         return x;
     }
+
     if (!self.assumedLocation)
     {
         [self locationIfKnown];
     }
 
+    if ([[self locationIfKnown] containsString:@"Root"])
+    {
+        self.definiteLocation = @"Root";
+    }
+
+    NSLog(@"[HPDEBUG]: %@ - %@", [self locationIfKnown], NSStringFromUIEdgeInsets(x));
     if ([[self locationIfKnown] isEqualToString:@"Dock"] && ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPdockConfigEnabled"]?:1) == 0) return x;
 
     if ([[self locationIfKnown] isEqualToString:@"FloatingDockSuggestions"] || [[self locationIfKnown] isEqualToString:@"FloatingDock"])
@@ -1939,7 +1976,18 @@ NSDictionary *prefs = nil;
         x = @"Dock";
     //if ([x isEqualToString:@"Folder"]) return %orig;
 
-    return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", x, @"Rows"]]?:%orig;
+    NSString *landscape = UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation) ? @"" : @"Landscape";
+
+
+    if (UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation))
+    {
+        if ([x containsString:@"Root"])
+        {
+            x = @"Root";
+        }
+    }
+
+    return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@%@", @"HPThemeDefault", x, landscape, @"Rows"]]?:%orig;
 }
 
 - (NSUInteger)iconColumnsForCurrentOrientation
@@ -1950,8 +1998,18 @@ NSDictionary *prefs = nil;
         x = @"Dock";
 
     //if ([x isEqualToString:@"Folder"]) return %orig;
+    NSString *landscape = UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation) ? @"" : @"Landscape";
 
-    return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", x, @"Columns"]]?:%orig;
+
+    if (UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation))
+    {
+        if ([x containsString:@"Root"])
+        {
+            x = @"Root";
+        }
+    }
+
+    return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@%@", @"HPThemeDefault", x, landscape, @"Columns"]]?:%orig;
 }
 - (BOOL)isFull 
 {
@@ -1970,8 +2028,6 @@ NSDictionary *prefs = nil;
 
     if ([x.iconLocation containsString:@"Dock"])
         x.iconLocation = @"Dock";
-    if ([x.iconLocation containsString:@"Root"])
-        x.iconLocation = @"Root";
 
     ///if ([x.iconLocation isEqualToString:@"Folder"]) return %orig;
     return x;
@@ -1996,26 +2052,58 @@ NSDictionary *prefs = nil;
     NSInteger x = %orig(arg1);
     
     if (_tcDockyInstalled && x <=1) return %orig;
-    if (x==3)
+
+    if ([self.iconLocation isEqualToString:@"Folder"] || x==3)
     {
         return 3;
     }
+
     if (!_rtConfigured && _pfTweakEnabled) return kMaxRowAmount;
 
-    return _pfTweakEnabled ? [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"Rows"]]: (NSUInteger)x;
+    NSString *landscape = UIDeviceOrientationIsPortrait(arg1) ? @"" : @"Landscape";
+
+
+    if (UIDeviceOrientationIsPortrait(arg1))
+    {
+        if ([self.iconLocation containsString:@"Root"])
+        {
+            self.iconLocation = @"Root";
+        }
+    }
+
+    if (self.iconLocation == nil)
+    {
+        self.iconLocation = @"Root";
+    }
+
+
+    NSLog(@"[HP2] %@ %d %@", self.iconLocation, arg1, landscape);
+
+    return _pfTweakEnabled ? [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@%@", @"HPThemeDefault", self.iconLocation, landscape, @"Rows"]]: (NSUInteger)x;
 }
 
 - (NSUInteger)numberOfColumnsForOrientation:(NSInteger)arg1
 {
     NSInteger x = %orig(arg1);
-    if (x==3)
+
+    if ([self.iconLocation isEqualToString:@"Folder"] || x==3)
     {
         return 3;
     }
 
     if (!_rtConfigured && _pfTweakEnabled) return kMaxColumnAmount;
 
-    return _pfTweakEnabled ? [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"Columns"]] : (NSUInteger)x;
+    NSString *landscape = UIDeviceOrientationIsPortrait(arg1) ? @"" : @"Landscape";
+
+    if (UIDeviceOrientationIsPortrait(arg1))
+    {
+        if ([self.iconLocation containsString:@"Root"])
+        {
+            self.iconLocation = @"Root";
+        }
+    }
+
+    return _pfTweakEnabled ? [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@%@", @"HPThemeDefault", self.iconLocation, landscape, @"Columns"]] : (NSUInteger)x;
 }
 
 %end

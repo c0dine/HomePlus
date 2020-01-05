@@ -96,6 +96,7 @@
 @property (nonatomic, retain) SBRootFolderView *contentView;
 - (BOOL)isSidebarPinned;
 - (BOOL)isSidebarVisible;
+@property (getter=isSidebarEffectivelyVisible,nonatomic,readonly) BOOL sidebarEffectivelyVisible;
 @end
 
 
