@@ -147,6 +147,8 @@ typedef CFPropertyListRef (*_CFPreferencesCopyValueWithContainerType)(CFStringRe
 
 + (BOOL)deviceRotatable
 {
+    return YES;
+
     if ([[HPUtility deviceName] containsString:@"iPad"])
         return YES;
     

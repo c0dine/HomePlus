@@ -58,13 +58,11 @@
 
 @interface SBIconListGridLayoutConfiguration
 
-@property (nonatomic, assign) NSString *assumedLocation;
-@property (nonatomic, retain) NSString *definiteLocation;
+@property (nonatomic, assign) NSString *iconLocation;
 @property (nonatomic, retain) NSDictionary *managerValues;
 @property (nonatomic, assign) UIEdgeInsets customInsets;
 
 - (void)getLatestValuesFromManager;
-- (NSString *)locationIfKnown;
 - (NSUInteger)numberOfPortraitColumns;
 - (NSUInteger)numberOfPortraitRows;
 - (UIEdgeInsets)portraitLayoutInsets;
@@ -148,6 +146,7 @@
 @interface SBIconListView : SBRootIconListView
 // This is actually backwards, but I'm lazy and it works. 
 @property(readonly, nonatomic) _Bool automaticallyAdjustsLayoutMetricsToFit;
+@property (nonatomic, assign) NSInteger orientation;
 
 - (NSString *)iconLocation;
 - (NSArray *)getDefaultValues;
