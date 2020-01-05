@@ -1671,72 +1671,48 @@ NSDictionary *prefs = nil;
 // Its not clearly identified which one owns this config, though
 //
 
-%property (nonatomic, assign) NSString *assumedLocation;
-%property (nonatomic, retain) NSString *definiteLocation;
+%property (nonatomic, retain) NSString *iconLocation;
 
-%new 
-- (NSString *)locationIfKnown
+- (id)init
 {
-    if (self.definiteLocation && [self.definiteLocation containsString:@"Dock"])
-        self.definiteLocation = @"Dock";
-    if (![[HPUtility deviceName] containsString:@"iPad"] && [self.definiteLocation isEqualToString:@"RootWithSidebar"])
+    id x = %orig;
+
+    self.iconLocation = @"Root";
+
+    return x;
+}
+
+- (NSUInteger)numberOfPortraitRows
+{
+    NSInteger x = %orig;
+
+    if (([self.iconLocation containsString:@"Dock"] // Only modify if 
+            && ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPdockConfigEnabled"]?:1) == 0) 
+        || (_tcDockyInstalled && (x<=2 || x==100)) )
     {
-        self.definiteLocation = @"Root";
+        return x;
     }
-    if (self.definiteLocation) return self.definiteLocation;
-    if (self.assumedLocation) return self.assumedLocation;
-    // Guess if it hasn't been set
-    else 
-    {
-        NSUInteger rows = MSHookIvar<NSUInteger>(self, "_numberOfPortraitRows");
-        NSUInteger columns = MSHookIvar<NSUInteger>(self, "_numberOfPortraitColumns"); 
-        // dock
-        if (rows <= 2 && columns == 4) // woo nested boolean logic 
-        {
-            self.assumedLocation =  @"Dock";
-        }
-        else if (rows == 3 && columns == 3)
-        {
-            self.assumedLocation =  @"Folder";
-        }
-        else 
-        {
-            self.assumedLocation =  @"Root";
-        }
-    }
-    return self.assumedLocation;
+    
+    return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"Rows"]] ?: x;
 }
 
 - (NSUInteger)numberOfLandscapeRows
 {
     NSInteger x = %orig;
 
-    if (!self.assumedLocation) return x;
-
-    if ([[self locationIfKnown] containsString:@"Dock"] && ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPdockConfigEnabled"]?:1) == 0) return x;
-
-    if (_tcDockyInstalled && (x<=2 || x==100))return %orig;
-
-    if (!_rtConfigured && _pfTweakEnabled) return kMaxRowAmount;
-
-    return _pfTweakEnabled ? [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LandscapeRows"]]?:x : (NSUInteger)x;
-}
-- (NSUInteger)numberOfPortraitRows
-{
-    NSInteger x = %orig;
-
-    if (![[HPUtility deviceName] containsString:@"iPad"] && [[self locationIfKnown] isEqualToString:@"RootWithSidebar"])
+    if (([self.iconLocation containsString:@"Dock"] 
+            && ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPdockConfigEnabled"]?:1) == 0)
+        || (_tcDockyInstalled && (x<=2 || x==100)) )
     {
-        self.definiteLocation = @"Root";
+        return x;
     }
 
-    if ([[self locationIfKnown] containsString:@"Dock"] && ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPdockConfigEnabled"]?:1) == 0) return x;
+    if ( [self.iconLocation containsString:@"Dock"] )
+    {
+        return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"Columns"]] ?: x;
+    }
 
-    if (_tcDockyInstalled && (x<=2 || x==100))return %orig;
-
-    if (!_rtConfigured && _pfTweakEnabled) return kMaxRowAmount;
-    
-    return _pfTweakEnabled ? [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"Rows"]]?:x : (NSUInteger)x;
+    return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LandscapeRows"]] ?: x;
 }
 
 - (NSUInteger)numberOfPortraitColumns
@@ -1745,37 +1721,20 @@ NSDictionary *prefs = nil;
                          //           What this means is that we're not getting the iOS value in some cases. We also get the values from other tweaks, 
                          //           And to ensure compatibility, we need to thoroughly check the value %orig gives us. 
 
-    if ((_tcDockyInstalled && (x == 5 || x==100)) // If Docky is changing the values (I wrote docky's latest version, I know what its going to give)
+    if (((_tcDockyInstalled && (x == 5 || x==100)) // If Docky is changing the values (I wrote docky's latest version, I know what its going to give)
 
                           || ([self numberOfPortraitRows] == 1 && x !=4) // or if another tweak is screwing with column values.
                                                                          // We only check here for dock values. I'm not making this compatible with HS layout tweaks, that's silly. 
 
-                          || (!self.assumedLocation) // If we dont know our icon location yet (give it the original value so we can figure out the location based on original values)
-                                                  // We can assume at this point that its an iOS original value since we've checked it against 5 icon dock tweaks and such. 
-
                           || (!_pfTweakEnabled)) 
-                        
+
+                          || ([self.iconLocation containsString:@"Dock"] 
+                                && (![[NSUserDefaults standardUserDefaults] boolForKey:@"HPdockConfigEnabled"])))
     {
         return x;
     }
 
-    if (![[HPUtility deviceName] containsString:@"iPad"] && [[self locationIfKnown] isEqualToString:@"RootWithSidebar"])
-    {
-        self.definiteLocation = @"Root";
-    }
-
-    if ([[self locationIfKnown] containsString:@"Dock"] 
-            && (![[NSUserDefaults standardUserDefaults] boolForKey:@"HPdockConfigEnabled"])) return x;
-
-    if (!_rtConfigured && _pfTweakEnabled) // Hack on iOS 13 to allow adding more columns and rows in real time.
-                                           //   For some reason, we cant increase columns/rows in runtime (w/o respring), 
-                                           //   but, we CAN decrease. SO, start with the max it'll allow,
-                                           //   then everything else is decreasing from that max
-    {
-        return kMaxColumnAmount;
-    }
-
-    return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"Columns"]]?:x;
+    return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"Columns"]] ?: x;
 }
 
 - (NSUInteger)numberOfLandscapeColumns
@@ -1784,52 +1743,41 @@ NSDictionary *prefs = nil;
                          //           What this means is that we're not getting the iOS value in some cases. We also get the values from other tweaks, 
                          //           And to ensure compatibility, we need to thoroughly check the value %orig gives us. 
 
-    if ((_tcDockyInstalled && (x == 5 || x==100)) // If Docky is changing the values (I wrote docky's latest version, I know what its going to give)
+    if (((_tcDockyInstalled && (x == 5 || x==100)) // If Docky is changing the values (I wrote docky's latest version, I know what its going to give)
 
                           || ([self numberOfPortraitRows] == 1 && x !=4) // or if another tweak is screwing with column values.
                                                                          // We only check here for dock values. I'm not making this compatible with HS layout tweaks, that's silly. 
 
-                          || (!self.assumedLocation) // If we dont know our icon location yet (give it the original value so we can figure out the location based on original values)
-                                                  // We can assume at this point that its an iOS original value since we've checked it against 5 icon dock tweaks and such. 
-
                           || (!_pfTweakEnabled)) 
+
+                          || ([self.iconLocation containsString:@"Dock"] 
+                                && (![[NSUserDefaults standardUserDefaults] boolForKey:@"HPdockConfigEnabled"])))
                         
     {
         return x;
     }
 
-    if ([[self locationIfKnown] containsString:@"Dock"] 
-            && (![[NSUserDefaults standardUserDefaults] boolForKey:@"HPdockConfigEnabled"])) return x;
 
-    if (!_rtConfigured && _pfTweakEnabled) // Hack on iOS 13 to allow adding more columns and rows in real time.
-                                           //   For some reason, we cant increase columns/rows in runtime (w/o respring), 
-                                           //   but, we CAN decrease. SO, start with the max it'll allow,
-                                           //   then everything else is decreasing from that max
+    if ( [self.iconLocation containsString:@"Dock"] )
     {
-        return kMaxColumnAmount;
+        return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"Rows"]] ?: x;
     }
 
-    return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LandscapeColumns"]]?:x;
+    return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LandscapeColumns"]] ?: x;
 }
+
 - (UIEdgeInsets)landscapeLayoutInsets
 {   
     UIEdgeInsets x = %orig;
+
     if (!_pfTweakEnabled)
     {
         return x;
     }
-    if (!self.assumedLocation)
-    {
-        [self locationIfKnown];
-    }
-    NSLog(@"[HPDEBUG]: %@ - %@", [self locationIfKnown], NSStringFromUIEdgeInsets(x));
-    if (x.left < 70 && [[HPUtility deviceName] containsString:@"iPad"]) // hack fix, something is wrong
-    {
-        self.definiteLocation = @"RootWithSidebar";
-    }
-    if ([[self locationIfKnown] isEqualToString:@"Dock"] && ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPdockConfigEnabled"]?:1) == 0) return x;
 
-    if ([[self locationIfKnown] isEqualToString:@"FloatingDockSuggestions"] || [[self locationIfKnown] isEqualToString:@"FloatingDock"])
+    if ([self.iconLocation isEqualToString:@"Dock"] && ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPdockConfigEnabled"]?:1) == 0) return x;
+
+    if ([self.iconLocation isEqualToString:@"FloatingDockSuggestions"] || [self.iconLocation isEqualToString:@"FloatingDock"])
     {
         return UIEdgeInsetsMake(
             x.top + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", @"Dock", @"TopInset"]]?:0),
@@ -1839,25 +1787,26 @@ NSDictionary *prefs = nil;
         );
     }
 
-    if ((!([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LandscapeLeftInset"]]?:0)) == 0)
+    if ((!([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LandscapeLeftInset"]]?:0)) == 0)
     {
         return UIEdgeInsetsMake(
-            x.top + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LandscapeTopInset"]]?:0),
-            [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LandscapeLeftInset"]]?:0,
-            x.bottom - ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LandscapeTopInset"]]?:0) + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LandscapeVerticalSpacing"]]?:0) *-2, // * 2 because regularly it was too slow
-            x.right - ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LandscapeLeftInset"]]?:0) + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LandscapeSideInset"]]?:0) *-2
+            x.top + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LandscapeTopInset"]]?:0),
+            [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LandscapeLeftInset"]]?:0,
+            x.bottom - ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LandscapeTopInset"]]?:0) + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LandscapeVerticalSpacing"]]?:0) *-2, // * 2 because regularly it was too slow
+            x.right - ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LandscapeLeftInset"]]?:0) + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LandscapeSideInset"]]?:0) *-2
         );
     }
     else
     {
         return UIEdgeInsetsMake(
-            x.top + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LandscapeTopInset"]]?:0) ,
-            x.left + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LandscapeSideInset"]]?:0)*-2,
-            x.bottom - ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LandscapeTopInset"]]?:0) + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LandscapeVerticalSpacing"]]?:0) *-2, // * 2 because regularly it was too slow
-            x.right + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LandscapeSideInset"]]?:0)*-2
+            x.top + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LandscapeTopInset"]]?:0) ,
+            x.left + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LandscapeSideInset"]]?:0)*-2,
+            x.bottom - ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LandscapeTopInset"]]?:0) + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LandscapeVerticalSpacing"]]?:0) *-2, // * 2 because regularly it was too slow
+            x.right + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LandscapeSideInset"]]?:0)*-2
         );
     }
 }
+
 - (UIEdgeInsets)portraitLayoutInsets
 {
     UIEdgeInsets x = %orig;
@@ -1867,20 +1816,9 @@ NSDictionary *prefs = nil;
         return x;
     }
 
-    if (!self.assumedLocation)
-    {
-        [self locationIfKnown];
-    }
+    if ([self.iconLocation isEqualToString:@"Dock"] && ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPdockConfigEnabled"]?:1) == 0) return x;
 
-    if ([[self locationIfKnown] containsString:@"Root"])
-    {
-        self.definiteLocation = @"Root";
-    }
-
-    NSLog(@"[HPDEBUG]: %@ - %@", [self locationIfKnown], NSStringFromUIEdgeInsets(x));
-    if ([[self locationIfKnown] isEqualToString:@"Dock"] && ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPdockConfigEnabled"]?:1) == 0) return x;
-
-    if ([[self locationIfKnown] isEqualToString:@"FloatingDockSuggestions"] || [[self locationIfKnown] isEqualToString:@"FloatingDock"])
+    if ([self.iconLocation isEqualToString:@"FloatingDockSuggestions"] || [self.iconLocation isEqualToString:@"FloatingDock"])
     {
         return UIEdgeInsetsMake(
             x.top + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", @"Dock", @"TopInset"]]?:0),
@@ -1890,22 +1828,22 @@ NSDictionary *prefs = nil;
         );
     }
 
-    if ((!([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LeftInset"]]?:0)) == 0)
+    if ((!([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LeftInset"]]?:0)) == 0)
     {
         return UIEdgeInsetsMake(
-            x.top + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"TopInset"]]?:0),
-            [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LeftInset"]]?:0,
-            x.bottom - ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"TopInset"]]?:0) + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"VerticalSpacing"]]?:0) *-2, // * 2 because regularly it was too slow
-            x.right - ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"LeftInset"]]?:0) + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"SideInset"]]?:0) *-2
+            x.top + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"TopInset"]]?:0),
+            [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LeftInset"]]?:0,
+            x.bottom - ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"TopInset"]]?:0) + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"VerticalSpacing"]]?:0) *-2, // * 2 because regularly it was too slow
+            x.right - ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"LeftInset"]]?:0) + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"SideInset"]]?:0) *-2
         );
     }
     else
     {
         return UIEdgeInsetsMake(
-            x.top + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"TopInset"]]?:0) ,
-            x.left + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"SideInset"]]?:0)*-2,
-            x.bottom - ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"TopInset"]]?:0) + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"VerticalSpacing"]]?:0) *-2, // * 2 because regularly it was too slow
-            x.right + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", [self locationIfKnown], @"SideInset"]]?:0)*-2
+            x.top + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"TopInset"]]?:0) ,
+            x.left + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"SideInset"]]?:0)*-2,
+            x.bottom - ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"TopInset"]]?:0) + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"VerticalSpacing"]]?:0) *-2, // * 2 because regularly it was too slow
+            x.right + ([[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", self.iconLocation, @"SideInset"]]?:0)*-2
         );
     }
 }
@@ -2025,10 +1963,11 @@ NSDictionary *prefs = nil;
 {
     SBIconListFlowLayout *x = %orig; // SBIconLocation
     x.iconLocation = [[self iconLocation] substringFromIndex:14];
-
-    if ([x.iconLocation containsString:@"Dock"])
-        x.iconLocation = @"Dock";
-
+    if ([x.iconLocation isEqualToString:@"RootWithSidebar"] && UIDeviceOrientationIsPortrait(self.orientation))
+    {
+        x.iconLocation = @"Root";
+    }
+    //[self layoutIconsNow];
     ///if ([x.iconLocation isEqualToString:@"Folder"]) return %orig;
     return x;
 }
@@ -2043,7 +1982,7 @@ NSDictionary *prefs = nil;
 - (id)layoutConfiguration
 {
     SBIconListGridLayoutConfiguration *x = %orig;
-    x.definiteLocation = self.iconLocation;
+    x.iconLocation = self.iconLocation;
     return x;
 }
 
@@ -2058,10 +1997,7 @@ NSDictionary *prefs = nil;
         return 3;
     }
 
-    if (!_rtConfigured && _pfTweakEnabled) return kMaxRowAmount;
-
     NSString *landscape = UIDeviceOrientationIsPortrait(arg1) ? @"" : @"Landscape";
-
 
     if (UIDeviceOrientationIsPortrait(arg1))
     {
@@ -2075,9 +2011,6 @@ NSDictionary *prefs = nil;
     {
         self.iconLocation = @"Root";
     }
-
-
-    NSLog(@"[HP2] %@ %d %@", self.iconLocation, arg1, landscape);
 
     return _pfTweakEnabled ? [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@%@", @"HPThemeDefault", self.iconLocation, landscape, @"Rows"]]: (NSUInteger)x;
 }
@@ -2866,6 +2799,11 @@ static void preferencesChanged()
     // *evil laugh*
 
     _tcDockyInstalled = [[NSFileManager defaultManager] fileExistsAtPath:@"/var/lib/dpkg/info/me.nepeta.docky.list"];
+
+    if (!_pfTweakEnabled)
+    {
+        return;
+    }
 
     %init(Universal);
 
