@@ -479,7 +479,7 @@ const int RESET_VALUES = 1;
             cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
             cell.accessoryView = switchView;
             [switchView setOn:[self storedStateForSwitchAtIndexPath:indexPath] animated:NO];
-            [switchView addTarget:self action:@selector(iconLabelSwitchChanged:) forControlEvents:UIControlEventValueChanged];
+            [switchView addTarget:self action:[self selectorForIndexPath:indexPath] forControlEvents:UIControlEventValueChanged];
 
             //[cell.layer setCornerRadius:10];
 
@@ -500,6 +500,83 @@ const int RESET_VALUES = 1;
 
     return nil;
 }
+- (SEL)selectorForIndexPath:(NSIndexPath *)indexPath
+{
+    switch ( indexPath.section )
+    {
+        case 0:
+        {
+            switch ( indexPath.row )
+            {
+                case 0:
+                {
+                    return @selector(iconLabelSwitchChanged:);
+                    break;
+                }
+                case 1:
+                {
+                    return @selector(iconBadgeSwitchChanged:);
+                    break;
+                }
+                case 2:
+                {
+                    return @selector(iconLabelFolderSwitchChanged:);
+                    break;
+                }
+            }
+            break;
+        }
+        case 1:
+        {
+            switch ( indexPath.row )
+            {
+                case 0:
+                {
+                    return @selector(dockConfigSwitchChanged:);
+                    break;
+                }
+                case 1:
+                {
+                    return @selector(dockbGSwitchChanged:);
+                    break;
+                }
+                case 2:
+                {
+                    return @selector(modernDockSwitchChanged:);
+                    break;
+                }
+            }
+            break;
+        }
+        case 2:
+        {
+            switch ( indexPath.row )
+            {
+                case 0:
+                {
+                    return nil;
+                    break;
+                }
+                case 1:
+                {
+                    return @selector(switcherSwitchChanged:);
+                    break;
+                }
+                case 2:
+                {
+                    return nil;
+                    break;
+                }
+            }
+            break;
+        }
+    }
+    return nil;
+}
+
+#pragma mark - Table View Data Source
+
+
 - (void)storageControlAction:(UISegmentedControl *)segment 
 {
     if (segment.selectedSegmentIndex == 0) {
@@ -607,7 +684,7 @@ const int RESET_VALUES = 1;
                     [self presentViewController:alert animated:YES completion:nil];
                     break;
                 }
-                case 3: 
+                case 2: 
                 {
                     [[HPManager sharedManager] saveCurrentLoadoutName];
                     [[HPManager sharedManager] saveCurrentLoadout];
