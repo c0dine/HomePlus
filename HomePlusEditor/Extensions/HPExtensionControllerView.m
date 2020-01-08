@@ -121,7 +121,7 @@
         self.bottomTextField.frame = CGRectMake(kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width+[[UIScreen mainScreen] bounds].size.width / 2 -  ((0.0369) * [[UIScreen mainScreen] bounds].size.height) / 2 - kLeftScreenBuffer * [[UIScreen mainScreen] bounds].size.width + 7, (0.0480) * [[UIScreen mainScreen] bounds].size.height, 50, 30);
 
     }
-    else if (self.bottomControlType = kNone)
+    else if (self.bottomControlType == kNone)
     {
         self.bottomView.hidden = YES;
     }
@@ -172,7 +172,6 @@
     //[prefs setValue:[NSNumber numberWithFloat: sender.value] forKey:self.topPreferenceLink];
 
     //[prefs writeToFile:self.bundleValueLocation atomically: YES];
-    static void *observer = NULL;
     [HPUtility writeToBundle:self.bundleID atKey:self.topPreferenceLink withValue:[NSNumber numberWithFloat:sender.value]];
     CFStringRef notif = (__bridge CFStringRef)self.topNotification;
     CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
@@ -190,7 +189,6 @@
 
 - (void)bottomSliderUpdated:(UISlider *)sender
 {
-    static void *observer = NULL;
     [HPUtility writeToBundle:self.bundleID atKey:self.bottomPreferenceLink withValue:[NSNumber numberWithFloat:sender.value]];
     CFStringRef notif = (__bridge CFStringRef)self.bottomNotification;
     CFNotificationCenterPostNotification(

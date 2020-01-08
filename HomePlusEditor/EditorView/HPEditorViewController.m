@@ -114,8 +114,8 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
     }*/
 
 
-    BOOL _tcDockyInstalled = [[NSFileManager defaultManager] fileExistsAtPath:@"/var/lib/dpkg/info/me.nepeta.docky.list"];
-    BOOL excludeForDocky = (_tcDockyInstalled && [[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationDock"]);
+    //BOOL _tcDockyInstalled = [[NSFileManager defaultManager] fileExistsAtPath:@"/var/lib/dpkg/info/me.nepeta.docky.list"];
+    //BOOL excludeForDocky = (_tcDockyInstalled && [[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationDock"]);
 
     self.homeTabControllerViews = [[NSMutableArray alloc] initWithObjects:[self offsetControlView], [self spacingControlView], 
                                                                         [self iconCountControlView], [self scaleControlView], 
