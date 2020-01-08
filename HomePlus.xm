@@ -90,6 +90,35 @@ NSDictionary *prefs = nil;
 
 %group Universal
 
+
+%hook SpringBoard
+
+- (NSUInteger)homeScreenRotationStyle
+{
+    BOOL x = [[NSUserDefaults standardUserDefaults] objectForKey:@"HPThemeDefaultForceRotation"] 
+                ? [[NSUserDefaults standardUserDefaults] boolForKey:@"HPThemeDefaultForceRotation"]
+                : NO;
+    return x ? 2 : %orig;
+}
+
+- (BOOL)homeScreenSupportsRotation
+{
+    return [[NSUserDefaults standardUserDefaults] objectForKey:@"HPThemeDefaultForceRotation"] 
+                ? [[NSUserDefaults standardUserDefaults] boolForKey:@"HPThemeDefaultForceRotation"]
+                : NO;
+}
+
+%end
+
+%hook SBWallpaperController
+
+-(BOOL)_isAcceptingOrientationChangesFromSource:(NSInteger)arg
+{
+    return NO;
+}
+
+%end
+
 #pragma mark HomeScreen Window
 
 %hook SBHomeScreenWindow
@@ -176,18 +205,18 @@ NSDictionary *prefs = nil;
             [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRoot"];
         }
 
-        SBRootFolderController *controller = [[objc_getClass("SBIconController") sharedInstance] _rootFolderController];
-        if ([controller isSidebarVisible] && [controller isSidebarEffectivelyVisible])
-        {
-            if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRoot"])
-            {
-                [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRootWithSidebar"];
-            }
-            else if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRootLandscape"])
-            {
-                [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRootWithSidebarLandscape"];
-            }
-        }
+                SBRootFolderController *controller = [[objc_getClass("SBIconController") sharedInstance] _rootFolderController];
+                if ([controller isSidebarVisible] && [controller isSidebarEffectivelyVisible])
+                {
+                    if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRoot"])
+                    {
+                        [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRootWithSidebar"];
+                    }
+                    else if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRootLandscape"])
+                    {
+                        [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRootWithSidebarLandscape"];
+                    }
+                }
 
         [[[EditorManager sharedManager] editorViewController] reload];
         [[EditorManager sharedManager] showEditorView];
@@ -481,7 +510,8 @@ NSDictionary *prefs = nil;
     }
     if (%orig && [[NSUserDefaults standardUserDefaults] integerForKey:@"HPTutorialGiven"] == 0)
     {
-        [[NSUserDefaults standardUserDefaults] setInteger:1 forKey:@"HPTutorialGiven"];
+        [[NSUserDefaults standardUserDefaults] setInteger:1 forKey:@"HPTutorialGiven"]; 
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"HPThemeDefaultForceRotation"];
 
         NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
 
@@ -796,9 +826,12 @@ NSDictionary *prefs = nil;
     {
         return x;
     }
+
+    NSString *landscape = UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation) ? @"" : @"Landscape";
+    landscape = [HPUtility deviceRotatable] ? landscape : @"";
     
     // NSUInteger -> NSInteger doesn't require casts, just dont give it a negative value and its fine. 
-    return [[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultRootColumns"]?:4;
+    return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefaultRoot", landscape, @"Columns"]]?:x;
 }
 
 + (NSUInteger)iconRowsForInterfaceOrientation:(NSInteger)arg1
@@ -815,22 +848,30 @@ NSDictionary *prefs = nil;
         return x;
     }
 
-    return [[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultRootRows"]?:x;
+    NSString *landscape = UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation) ? @"" : @"Landscape";
+    landscape = [HPUtility deviceRotatable] ? landscape : @"";
+
+
+    return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefaultRoot", landscape, @"Rows"]]?:x;
 }
 
 + (NSUInteger)maxVisibleIconRowsInterfaceOrientation:(NSInteger)arg1
 {
+
+    NSString *landscape = UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation) ? @"" : @"Landscape";
+    landscape = [HPUtility deviceRotatable] ? landscape : @"";
+
     // Allow more than 24 icons on the SB w/o a reload
     if (_pfTweakEnabled 
-        && ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultRootRows"]?:[HPUtility defaultRows] == [HPUtility defaultRows])
-        && (([[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultRootColumns"]?:4) == 4))
+        && ([[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefaultRoot", landscape, @"Rows"]]?:[HPUtility defaultRows] == [HPUtility defaultRows])
+        && (([[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefaultRoot", landscape, @"Columns"]]?:4) == 4))
     {
         return %orig;
     }
 
     if (_pfTweakEnabled)
     {
-        return ([[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultRootRows"] ?: [HPUtility defaultRows]);
+        return ([[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefaultRoot", landscape, @"Rows"]]?: [HPUtility defaultRows]);
     }
 
     return %orig;
@@ -853,7 +894,11 @@ NSDictionary *prefs = nil;
         return x;
     }
 
-    return [[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultRootRows"] ?: x;
+    NSString *landscape = UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation) ? @"" : @"Landscape";
+    landscape = [HPUtility deviceRotatable] ? landscape : @"";
+
+
+    return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefaultRoot", landscape, @"Rows"]] ?: x;
 }
 
 %end
@@ -1015,11 +1060,19 @@ NSDictionary *prefs = nil;
 {
     // Bad method name
     // This method returns rows
+
+
+
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"HPdockConfigEnabled"] 
             || _tcDockyInstalled || !_rtConfigured 
             || !_pfTweakEnabled) 
     {
         return %orig(arg1);
+    }
+
+    if (UIDeviceOrientationIsLandscape([UIDevice currentDevice].orientation))
+    {
+        return [[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultDockRows"]?:1;
     }
 
     return [[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultDockColumns"] ?: 4;
@@ -1032,6 +1085,11 @@ NSDictionary *prefs = nil;
         || !_pfTweakEnabled) 
     {
         return %orig;
+    }
+
+        if (UIDeviceOrientationIsLandscape([UIDevice currentDevice].orientation))
+    {
+        return [[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultDockColumns"]?:4;
     }
 
     return [[NSUserDefaults standardUserDefaults] integerForKey:@"HPThemeDefaultDockRows"]?:1;
@@ -1915,7 +1973,7 @@ NSDictionary *prefs = nil;
     //if ([x isEqualToString:@"Folder"]) return %orig;
 
     NSString *landscape = UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation) ? @"" : @"Landscape";
-
+    landscape = [HPUtility deviceRotatable] ? landscape : @"";
 
     if (UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation))
     {
@@ -1937,6 +1995,7 @@ NSDictionary *prefs = nil;
 
     //if ([x isEqualToString:@"Folder"]) return %orig;
     NSString *landscape = UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation) ? @"" : @"Landscape";
+    landscape = [HPUtility deviceRotatable] ? landscape : @"";
 
 
     if (UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation))
@@ -2012,7 +2071,12 @@ NSDictionary *prefs = nil;
         self.iconLocation = @"Root";
     }
 
-    return _pfTweakEnabled ? [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@%@", @"HPThemeDefault", self.iconLocation, landscape, @"Rows"]]: (NSUInteger)x;
+    if ([self.iconLocation isEqualToString:@"Dock"] && UIDeviceOrientationIsLandscape(arg1))
+    {
+        return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@%@", @"HPThemeDefault", self.iconLocation, landscape, @"Columns"]] ?: (NSUInteger)x;
+    }
+
+    return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@%@", @"HPThemeDefault", self.iconLocation, landscape, @"Rows"]] ?: (NSUInteger)x;
 }
 
 - (NSUInteger)numberOfColumnsForOrientation:(NSInteger)arg1
@@ -2034,6 +2098,11 @@ NSDictionary *prefs = nil;
         {
             self.iconLocation = @"Root";
         }
+    }
+
+    if ([self.iconLocation isEqualToString:@"Dock"] && UIDeviceOrientationIsLandscape(arg1))
+    {
+        return [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@%@", @"HPThemeDefault", self.iconLocation, landscape, @"Rows"]] ?: (NSUInteger)x;
     }
 
     return _pfTweakEnabled ? [[NSUserDefaults standardUserDefaults] integerForKey:[NSString stringWithFormat:@"%@%@%@%@", @"HPThemeDefault", self.iconLocation, landscape, @"Columns"]] : (NSUInteger)x;

@@ -189,6 +189,18 @@ const int RESET_VALUES = 1;
     {
         case 0:
         {
+            switch (indexPath.row)
+            {
+                case 0:
+                {
+                    title = [HPUtility localizedItem:@"FORCE_ROTATION"];
+                    break;
+                }
+            }
+            break;
+        }
+        case 1:
+        {
             switch ( indexPath.row )
             {
                 case 0:
@@ -209,7 +221,7 @@ const int RESET_VALUES = 1;
             }
             break;
         }
-        case 1:
+        case 2:
         {
             switch ( indexPath.row )
             {
@@ -231,7 +243,7 @@ const int RESET_VALUES = 1;
             }
             break;
         }
-        case 2:
+        case 3:
         {
             switch ( indexPath.row )
             {
@@ -262,7 +274,7 @@ const int RESET_VALUES = 1;
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 3;
+    return 4;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -270,17 +282,22 @@ const int RESET_VALUES = 1;
     NSInteger rows = 0;
     switch ( section ) 
     {
-        case 0: // Icons
+        case 0:
+        {
+            rows = 1;
+            break;
+        }
+        case 1: // Icons
         {
             rows = 3;
             break;
         }
-        case 1: // Dock
+        case 2: // Dock
         {
             rows = 3;
             break;
         }
-        case 2: // Settings
+        case 3: // Settings
         {
             rows = 3;
             break;
@@ -296,12 +313,15 @@ const int RESET_VALUES = 1;
     switch (section) 
     {
         case 0:
-            sectionName = [HPUtility localizedItem:@"ICONS"];
+            sectionName = [HPUtility localizedItem:@"HOMESCREEN"];
             break;
         case 1:
-            sectionName = [HPUtility localizedItem:@"DOCK"];
+            sectionName = [HPUtility localizedItem:@"ICONS"];
             break;
         case 2:
+            sectionName = [HPUtility localizedItem:@"DOCK"];
+            break;
+        case 3:
             sectionName = [HPUtility localizedItem:@"SETTINGS"];
             break;
         default:
@@ -368,6 +388,18 @@ const int RESET_VALUES = 1;
             {
                 case 0:
                 {
+                    key = @"HPThemeDefaultForceRotation";
+                    break;
+                }
+            }
+            break;
+        }
+        case 1:
+        {
+            switch ( indexPath.row )
+            {
+                case 0:
+                {
                     key = @"HPThemeDefaultIconLabels";
                     break;
                 }
@@ -384,7 +416,7 @@ const int RESET_VALUES = 1;
             }
             break;
         }
-        case 1:
+        case 2:
         {
             switch ( indexPath.row )
             {
@@ -406,7 +438,7 @@ const int RESET_VALUES = 1;
             }
             break;
         }
-        case 2:
+        case 3:
         {
             switch ( indexPath.row )
             {
@@ -439,7 +471,7 @@ const int RESET_VALUES = 1;
 
 - (HPTableCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.section == 2 && (indexPath.row == 0 || indexPath.row == 2))
+    if (indexPath.section == 3 && (indexPath.row == 0 || indexPath.row == 2))
     {   // Clickable Cells
         static NSString *CellIdentifier = @"Cell";
         HPTableCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
@@ -510,6 +542,18 @@ const int RESET_VALUES = 1;
             {
                 case 0:
                 {
+                    return @selector(forceRotationSwitchChanged:);
+                    break;
+                }
+            }
+            break;
+        }
+        case 1:
+        {
+            switch ( indexPath.row )
+            {
+                case 0:
+                {
                     return @selector(iconLabelSwitchChanged:);
                     break;
                 }
@@ -526,7 +570,7 @@ const int RESET_VALUES = 1;
             }
             break;
         }
-        case 1:
+        case 2:
         {
             switch ( indexPath.row )
             {
@@ -548,7 +592,7 @@ const int RESET_VALUES = 1;
             }
             break;
         }
-        case 2:
+        case 3:
         {
             switch ( indexPath.row )
             {
@@ -585,6 +629,11 @@ const int RESET_VALUES = 1;
     {
 
     }
+}
+- (void)forceRotationSwitchChanged:(UISwitch *)sender
+{
+    [[NSUserDefaults standardUserDefaults] setBool:sender.on
+                    forKey:@"HPThemeDefaultForceRotation"];
 }
 - (void)dockConfigSwitchChanged:(UISwitch *)sender
 {
@@ -650,7 +699,7 @@ const int RESET_VALUES = 1;
 {
     switch (indexPath.section) 
     {
-        case 2: 
+        case 3: 
         {
             switch (indexPath.row) 
             {

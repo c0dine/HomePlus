@@ -147,7 +147,8 @@ typedef CFPropertyListRef (*_CFPreferencesCopyValueWithContainerType)(CFStringRe
 
 + (BOOL)deviceRotatable
 {
-    return YES;
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"HPThemeDefaultForceRotation"])
+        return YES;
 
     if ([[HPUtility deviceName] containsString:@"iPad"])
         return YES;
@@ -247,6 +248,7 @@ typedef CFPropertyListRef (*_CFPreferencesCopyValueWithContainerType)(CFStringRe
 {
     CFPreferencesAppSynchronize((CFStringRef)identifier);
     CFPreferencesSetValue((CFStringRef)key, (CFPropertyListRef)value, (CFStringRef)identifier, CFSTR("mobile"), kCFPreferencesAnyHost);
+    return YES;
 }
 
 +(UIImage*)imageWithImage: (UIImage*) sourceImage scaledToWidth: (float) i_width

@@ -7,6 +7,8 @@
 "ICON_ALPHA"="Icon Alpha";
 "VERTICAL_SPACING"="Vertical Spacing";
 "HORIZONTAL_SPACING"="Horizontal Spacing";
+"FORCE_ROTATION"="Allow Homescreen Rotation";
+"HOMESCREEN"="Home Screen";
 "HIDE_ICON_LABELS"="Hide Icon Labels";
 "HIDE_BADGES"="Hide Badges";
 "HIDE_LABELS_FOLDERS"="Hide Labels in Folders";
