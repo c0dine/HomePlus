@@ -205,6 +205,10 @@ NSDictionary *prefs = nil;
             [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRoot"];
         }
 
+        if (@available(iOS 13.0, *)) 
+        {
+            if (kCFCoreFoundationVersionNumber > 1600) 
+            {
                 SBRootFolderController *controller = [[objc_getClass("SBIconController") sharedInstance] _rootFolderController];
                 if ([controller isSidebarVisible] && [controller isSidebarEffectivelyVisible])
                 {
@@ -217,6 +221,8 @@ NSDictionary *prefs = nil;
                         [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRootWithSidebarLandscape"];
                     }
                 }
+            }
+        }
 
         [[[EditorManager sharedManager] editorViewController] reload];
         [[EditorManager sharedManager] showEditorView];
