@@ -25,4 +25,7 @@
 + (UIImage *)inAppBannerNotched;
 + (UIImage *)inAppFooter;
 + (UIImage *)extensionHome;
++ (UIImage *)save;
++ (UIImage *)cancel;
++ (UIImage *)loadouts;
 @end 

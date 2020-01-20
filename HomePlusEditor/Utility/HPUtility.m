@@ -10,6 +10,7 @@
 //
 
 #import "HPUtility.h"
+#include "HPDataManager.h"
 #import <sys/utsname.h>
 #import <version.h>
 #include <sandbox.h>
@@ -147,7 +148,7 @@ typedef CFPropertyListRef (*_CFPreferencesCopyValueWithContainerType)(CFStringRe
 
 + (BOOL)deviceRotatable
 {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"HPThemeDefaultForceRotation"])
+    if ([[[HPDataManager sharedManager] currentConfiguration] boolForKey:@"HPThemeDefaultForceRotation"])
         return YES;
 
     if ([[HPUtility deviceName] containsString:@"iPad"])
