@@ -16,6 +16,7 @@
 #include "HPUtility.h"
 #include "HPManager.h"
 #include "HPTableCell.h"
+#include "HPDataManager.h"
 #include "spawn.h"
 
 const int RESET_VALUES = 1;
@@ -462,8 +463,8 @@ const int RESET_VALUES = 1;
         }
     }
 
-    return [[NSUserDefaults standardUserDefaults] objectForKey:key] 
-                ? [[NSUserDefaults standardUserDefaults] boolForKey:key]
+    return [[[HPDataManager sharedManager] currentConfiguration] objectForKey:key] 
+                ? [[[HPDataManager sharedManager] currentConfiguration] boolForKey:key]
                 : NO;
 }
 
@@ -632,12 +633,12 @@ const int RESET_VALUES = 1;
 }
 - (void)forceRotationSwitchChanged:(UISwitch *)sender
 {
-    [[NSUserDefaults standardUserDefaults] setBool:sender.on
+    [[[HPDataManager sharedManager] currentConfiguration] setBool:sender.on
                     forKey:@"HPThemeDefaultForceRotation"];
 }
 - (void)dockConfigSwitchChanged:(UISwitch *)sender
 {
-    [[NSUserDefaults standardUserDefaults] setBool:sender.on
+    [[[HPDataManager sharedManager] currentConfiguration] setBool:sender.on
                     forKey:@"HPdockConfigEnabled"];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"HPResetIconViews" object:nil];
 }
@@ -656,7 +657,7 @@ const int RESET_VALUES = 1;
 - (void)dockbGSwitchChanged:(id)sender 
 {
     UISwitch *switchControl = sender;
-    [[NSUserDefaults standardUserDefaults] setBool:switchControl.on
+    [[[HPDataManager sharedManager] currentConfiguration] setBool:switchControl.on
                     forKey:[NSString stringWithFormat:@"%@%@", @"HPThemeDefault", @"HideDock"] ];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"HPLayoutDockView" object:nil];
 }
@@ -664,7 +665,7 @@ const int RESET_VALUES = 1;
 - (void)modernDockSwitchChanged:(id)sender 
 {
     UISwitch *switchControl = sender;
-    [[NSUserDefaults standardUserDefaults] setBool:switchControl.on
+    [[[HPDataManager sharedManager] currentConfiguration] setBool:switchControl.on
                     forKey:[NSString stringWithFormat:@"%@%@", @"HPThemeDefault", @"ModernDock"] ];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"HPLayoutDockView" object:nil];
 }
@@ -672,7 +673,7 @@ const int RESET_VALUES = 1;
 - (void)iconLabelSwitchChanged:(id)sender 
 {
     UISwitch *switchControl = sender;
-    [[NSUserDefaults standardUserDefaults] setBool:switchControl.on
+    [[[HPDataManager sharedManager] currentConfiguration] setBool:switchControl.on
                     forKey:[NSString stringWithFormat:@"%@%@", @"HPThemeDefault", @"IconLabels"] ];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"HPResetIconViews" object:nil];
 }
@@ -680,7 +681,7 @@ const int RESET_VALUES = 1;
 - (void)iconBadgeSwitchChanged:(id)sender 
 {
     UISwitch *switchControl = sender;
-    [[NSUserDefaults standardUserDefaults] setBool:switchControl.on
+    [[[HPDataManager sharedManager] currentConfiguration] setBool:switchControl.on
                     forKey:[NSString stringWithFormat:@"%@%@", @"HPThemeDefault", @"IconBadges"] ];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"HPResetIconViews" object:nil];
 }
@@ -688,7 +689,7 @@ const int RESET_VALUES = 1;
 - (void)iconLabelFolderSwitchChanged:(id)sender 
 {
     UISwitch *switchControl = sender;
-    [[NSUserDefaults standardUserDefaults] setBool:switchControl.on
+    [[[HPDataManager sharedManager] currentConfiguration] setBool:switchControl.on
                     forKey:[NSString stringWithFormat:@"%@%@", @"HPThemeDefault", @"IconLabelsF"] ];}
 
 #pragma mark - Table View Delegate
@@ -713,8 +714,8 @@ const int RESET_VALUES = 1;
                                         actionWithTitle:@"Yes"
                                                 style:UIAlertActionStyleDefault
                                                 handler:^(UIAlertAction * action) {
-                                                    [[NSUserDefaults standardUserDefaults] setInteger:0 forKey:@"HPTutorialGiven"];
-                                                    [[NSUserDefaults standardUserDefaults] synchronize];
+                                                    [[[HPDataManager sharedManager] currentConfiguration] setInteger:0 forKey:@"HPTutorialGiven"];
+                                                    [[[HPDataManager sharedManager] currentConfiguration] saveConfigurationToFile];
                                                     pid_t pid;
                                                     const char* args[] = {"killall", "backboardd", NULL};
                                                     posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
@@ -737,9 +738,12 @@ const int RESET_VALUES = 1;
                 {
                     [[HPManager sharedManager] saveCurrentLoadoutName];
                     [[HPManager sharedManager] saveCurrentLoadout];
-	                pid_t pid;
-                    const char* args[] = {"killall", "backboardd", NULL};
-                    posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+                    [[[HPDataManager sharedManager] currentConfiguration] saveConfigurationToFile];
+                    pid_t pid;
+                    int status;
+                    const char *args[] = {"sbreload", NULL, NULL, NULL};
+                    posix_spawn(&pid, "usr/bin/sbreload", NULL, NULL, (char *const *)args, NULL);
+                    waitpid(pid, &status, WEXITED);
                     break;
                 }
             }

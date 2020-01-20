@@ -12,6 +12,7 @@
 #import "ExtensionManager.h"
 #include "EditorManager.h"
 #include "HPOffsetControllerView.h"
+#include "HPDataManager.h"
 #include "HPSpacingControllerView.h"
 #include "HPIconCountControllerView.h"
 #include "HPScaleControllerView.h"
@@ -33,6 +34,7 @@
 @property (nonatomic, readwrite, strong) HPControllerView *scaleControlView;
 @property (nonatomic, readwrite, strong) HPControllerView *settingsView;
 
+@property (nonatomic, readwrite, strong) HPEditorViewNavigationTabBar *loadoutTabBar;
 @property (nonatomic, readwrite, strong) HPEditorViewNavigationTabBar *tabBar;
 
 @property (nonatomic, readwrite, strong) HPSettingsTableViewController *tableViewController;
@@ -121,6 +123,8 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
                                                                         [self iconCountControlView], [self scaleControlView], 
                                                                         [self settingsView], nil];
 
+    self.loadoutTabBar = [self loadoutBar];
+
     // Add subviews to self. Any time viewDidLoad is called manually, unload these view beforehand
     if (self.activeExtension == nil)
     {
@@ -160,7 +164,55 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
 
     [self.view addSubview:self.tabBar];
     [self.view addSubview:self.extensionBar];
+    [self.view addSubview:self.loadoutTabBar];
 }
+
+- (HPEditorViewNavigationTabBar *)loadoutBar
+{
+    HPEditorViewNavigationTabBar *loadoutBar = [[HPEditorViewNavigationTabBar alloc] initWithFrame:CGRectMake(
+                                        7.5,
+                                        ([[UIScreen mainScreen] bounds].size.height * .85) - MENU_BUTTON_SIZE*3,
+                                        MENU_BUTTON_SIZE, MENU_BUTTON_SIZE*3)];
+
+    UIButton *saveButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    UIImage *saveImage = [HPUtility imageWithImage:[HPResources save] scaledToWidth:30];;
+    [saveButton setImage:saveImage forState:UIControlStateNormal];
+    saveButton.frame = CGRectMake(0,0, MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
+    [saveButton addTarget:self 
+        action:@selector(handleSaveButtonPress:)
+        forControlEvents:UIControlEventTouchUpInside];
+    
+    [loadoutBar addSubview:saveButton];
+
+    UIButton *cancelButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    UIImage *cancelImage = [HPUtility imageWithImage:[HPResources cancel] scaledToWidth:30];;
+    [cancelButton setImage:cancelImage forState:UIControlStateNormal];
+    cancelButton.frame = CGRectMake(0,MENU_BUTTON_SIZE, MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
+    [cancelButton addTarget:self 
+        action:@selector(handleCancelButtonPress:)
+        forControlEvents:UIControlEventTouchUpInside];
+    
+    [loadoutBar addSubview:cancelButton];
+
+    UIButton *loadoutButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    UIImage *loadoutImage = [HPUtility imageWithImage:[HPResources loadouts] scaledToWidth:30];;
+    [loadoutButton setImage:loadoutImage forState:UIControlStateNormal];
+    loadoutButton.frame = CGRectMake(0,MENU_BUTTON_SIZE*2, MENU_BUTTON_SIZE, MENU_BUTTON_SIZE);
+    [saveButton addTarget:self 
+        action:@selector(handleLoadoutButtonPress:)
+        forControlEvents:UIControlEventTouchUpInside];
+    
+    [loadoutBar addSubview:loadoutButton];
+
+        for (UIButton *button in [loadoutBar subviews])
+    {
+        [button addTarget:self
+            action:@selector(buttonPressDown:)
+            forControlEvents:UIControlEventTouchDown];
+    }
+    return loadoutBar;
+}
+
 
 - (HPEditorViewNavigationTabBar *)anExtensionBar
 {
@@ -499,6 +551,20 @@ const CGFloat TABLE_HEADER_HEIGHT = 0.458;
     [[NSNotificationCenter defaultCenter] postNotificationName:kHighlightViewNotificationName object:nil];
 }
 
+- (void)handleSaveButtonPress:(UIButton*)sender
+{
+    [[[HPDataManager sharedManager] currentConfiguration] saveConfigurationToFile];
+}
+- (void)handleCancelButtonPress:(UIButton*)sender
+{
+    [[[HPDataManager sharedManager] currentConfiguration] loadConfigurationFromFile];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"HPlayoutIconViews" object:nil];
+    [self reload];
+}
+- (void)handleLoadoutButtonPress:(UIButton*)sender
+{
+    NSLog(@"and i oop");
+}
 #pragma mark Settings View
 
 - (HPControllerView *)settingsView 
