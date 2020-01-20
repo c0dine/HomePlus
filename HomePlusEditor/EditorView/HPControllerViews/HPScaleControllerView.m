@@ -11,6 +11,7 @@
 #include "HPScaleControllerView.h"
 #include "EditorManager.h"
 #include "HPUtility.h"
+#include "HPDataManager.h"
 
 @implementation HPScaleControllerView
 
@@ -56,10 +57,10 @@ Properties:
     self.bottomControl.maximumValue = 100.0;
 
 
-    self.topControl.value = [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"Scale"]];
-    self.topTextField.text = [NSString stringWithFormat:@"%.0f", [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"Scale"]]];
-    self.bottomControl.value = [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"IconAlpha"]];
-    self.bottomTextField.text = [NSString stringWithFormat:@"%.0f", [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"IconAlpha"]]];
+    self.topControl.value = [[[HPDataManager sharedManager] currentConfiguration] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"Scale"]];
+    self.topTextField.text = [NSString stringWithFormat:@"%.0f", [[[HPDataManager sharedManager] currentConfiguration] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"Scale"]]];
+    self.bottomControl.value = [[[HPDataManager sharedManager] currentConfiguration] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"IconAlpha"]];
+    self.bottomTextField.text = [NSString stringWithFormat:@"%.0f", [[[HPDataManager sharedManager] currentConfiguration] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"IconAlpha"]]];
     
 }
 
@@ -67,7 +68,7 @@ Properties:
 {
     NSString *x = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
 
-    [[NSUserDefaults standardUserDefaults] setFloat:sender.value
+    [[[HPDataManager sharedManager] currentConfiguration] setFloat:sender.value
                 forKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"Scale"]];
     self.topTextField.text = [NSString stringWithFormat:@"%.0f", sender.value];
 
@@ -78,7 +79,7 @@ Properties:
 {
     NSString *x = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
 
-    [[NSUserDefaults standardUserDefaults] setFloat:sender.value
+    [[[HPDataManager sharedManager] currentConfiguration] setFloat:sender.value
                 forKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"IconAlpha"]];
     self.bottomTextField.text = [NSString stringWithFormat:@"%.0f", sender.value];
 

@@ -17,6 +17,7 @@
 #include "HPSpacingControllerView.h"
 #include "EditorManager.h"
 #include "HPUtility.h"
+#include "HPDataManager.h"
 
 @implementation HPSpacingControllerView
 
@@ -62,9 +63,9 @@ Properties:
     self.bottomControl.maximumValue = 400.0;    
 
     
-    self.topControl.value = [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", x, @"VerticalSpacing"]];
+    self.topControl.value = [[[HPDataManager sharedManager] currentConfiguration] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", x, @"VerticalSpacing"]];
     self.topTextField.text = [NSString stringWithFormat:@"%.0f", self.topControl.value];
-    self.bottomControl.value = [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", x, @"SideInset"]];
+    self.bottomControl.value = [[[HPDataManager sharedManager] currentConfiguration] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", x, @"SideInset"]];
     self.bottomTextField.text = [NSString stringWithFormat:@"%.0f", self.bottomControl.value];
 }
 
@@ -72,7 +73,7 @@ Properties:
 {
     NSString *x = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
 
-    [[NSUserDefaults standardUserDefaults] setFloat:sender.value
+    [[[HPDataManager sharedManager] currentConfiguration] setFloat:sender.value
                 forKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"VerticalSpacing"]];
     self.topTextField.text = [NSString stringWithFormat:@"%.0f", sender.value];
 
@@ -83,7 +84,7 @@ Properties:
 {
     NSString *x = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
 
-    [[NSUserDefaults standardUserDefaults] setFloat:sender.value
+    [[[HPDataManager sharedManager] currentConfiguration] setFloat:sender.value
                 forKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"SideInset"]];
     self.bottomTextField.text = [NSString stringWithFormat:@"%.0f", sender.value];
 

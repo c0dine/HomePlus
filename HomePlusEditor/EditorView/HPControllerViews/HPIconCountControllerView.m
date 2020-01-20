@@ -12,6 +12,7 @@
 
 #include "HPIconCountControllerView.h"
 #include "HPUtility.h"
+#include "HPDataManager.h"
 #include "EditorManager.h"
 
 @implementation HPIconCountControllerView
@@ -106,9 +107,9 @@
         
     [self.bottomView addSubview:colPlu];
 
-    self.topControl.value = [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", x, @"Rows"]];
+    self.topControl.value = [[[HPDataManager sharedManager] currentConfiguration] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", x, @"Rows"]];
     self.topTextField.text = [NSString stringWithFormat:@"%.0f", self.topControl.value];
-    self.bottomControl.value = [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", x, @"Columns"]];
+    self.bottomControl.value = [[[HPDataManager sharedManager] currentConfiguration] floatForKey:[NSString stringWithFormat:@"%@%@%@", @"HPThemeDefault", x, @"Columns"]];
     self.bottomTextField.text = [NSString stringWithFormat:@"%.0f", self.bottomControl.value];
 
 }
@@ -141,7 +142,7 @@
 {
     NSString *x = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
 
-    [[NSUserDefaults standardUserDefaults]  setInteger:sender.value
+    [[[HPDataManager sharedManager] currentConfiguration]  setInteger:sender.value
             forKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"Rows"]];
  
     [[NSNotificationCenter defaultCenter] postNotificationName:@"HPResetIconViews" object:nil];
@@ -152,7 +153,7 @@
 {
     NSString *x = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
 
-    [[NSUserDefaults standardUserDefaults]  setFloat:sender.value
+    [[[HPDataManager sharedManager] currentConfiguration]  setFloat:sender.value
             forKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"Columns"]];
     if ([x isEqualToString:@"Dock"]) [[NSNotificationCenter defaultCenter] postNotificationName:@"HPlayoutIconViewsAnimated" object:nil];
     

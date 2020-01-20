@@ -11,6 +11,7 @@
 
 #include "HPOffsetControllerView.h"
 #include "EditorManager.h"
+#include "HPDataManager.h"
 #include "HPUtility.h"
 
 @implementation HPOffsetControllerView
@@ -67,17 +68,17 @@ Properties:
     [self.bottomView addSubview:self.leftOffsetLabel];
     
     
-    self.topControl.value = [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"TopInset"]];
-    self.topTextField.text = [NSString stringWithFormat:@"%.0f", [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"TopInset"]]];
-    self.bottomControl.value = [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"LeftInset"]];
-    self.bottomTextField.text = [NSString stringWithFormat:@"%.0f", [[NSUserDefaults standardUserDefaults] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"LeftInset"]]];
+    self.topControl.value = [[[HPDataManager sharedManager] currentConfiguration] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"TopInset"]];
+    self.topTextField.text = [NSString stringWithFormat:@"%.0f", [[[HPDataManager sharedManager] currentConfiguration] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"TopInset"]]];
+    self.bottomControl.value = [[[HPDataManager sharedManager] currentConfiguration] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"LeftInset"]];
+    self.bottomTextField.text = [NSString stringWithFormat:@"%.0f", [[[HPDataManager sharedManager] currentConfiguration] floatForKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"LeftInset"]]];
 }
 
 - (void)topSliderUpdated:(UISlider *)sender
 {
     NSString *x = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
 
-    [[NSUserDefaults standardUserDefaults] setFloat:sender.value
+    [[[HPDataManager sharedManager] currentConfiguration] setFloat:sender.value
                 forKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"TopInset"]];
     self.topTextField.text = [NSString stringWithFormat:@"%.0f", sender.value];
 
@@ -88,7 +89,7 @@ Properties:
 {
     NSString *x = [[[EditorManager sharedManager] editingLocation] substringFromIndex:14];
 
-    [[NSUserDefaults standardUserDefaults] setFloat:sender.value
+    [[[HPDataManager sharedManager] currentConfiguration] setFloat:sender.value
                 forKey:[NSString stringWithFormat:@"HPThemeDefault%@%@", x, @"LeftInset"]];
     self.bottomTextField.text = [NSString stringWithFormat:@"%.0f", sender.value];
 
