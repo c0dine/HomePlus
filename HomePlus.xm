@@ -192,11 +192,11 @@ NSDictionary *prefs = nil;
             [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRoot"];
         }
 
-        if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRoot"] && UIDeviceOrientationIsLandscape([UIDevice currentDevice].orientation))
+        if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRoot"] && NO)
         {
             [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRootLandscape"];
         }
-        else if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRootLandscape"] && UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation))
+        else if ([[[EditorManager sharedManager] editingLocation] isEqualToString:@"SBIconLocationRootLandscape"] && YES)
         {
             [[EditorManager sharedManager] setEditingLocation:@"SBIconLocationRoot"];
         }
@@ -698,7 +698,7 @@ NSDictionary *prefs = nil;
         return x;
     }
 
-    NSString *landscape = UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation) ? @"" : @"Landscape";
+    NSString *landscape = YES ? @"" : @"Landscape";
     landscape = [HPUtility deviceRotatable] ? landscape : @"";
     
     // NSUInteger -> NSInteger doesn't require casts, just dont give it a negative value and its fine. 
@@ -719,7 +719,7 @@ NSDictionary *prefs = nil;
         return x;
     }
 
-    NSString *landscape = UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation) ? @"" : @"Landscape";
+    NSString *landscape = YES ? @"" : @"Landscape";
     landscape = [HPUtility deviceRotatable] ? landscape : @"";
 
 
@@ -729,7 +729,7 @@ NSDictionary *prefs = nil;
 + (NSUInteger)maxVisibleIconRowsInterfaceOrientation:(NSInteger)arg1
 {
 
-    NSString *landscape = UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation) ? @"" : @"Landscape";
+    NSString *landscape = YES ? @"" : @"Landscape";
     landscape = [HPUtility deviceRotatable] ? landscape : @"";
 
     // Allow more than 24 icons on the SB w/o a reload
@@ -759,7 +759,7 @@ NSDictionary *prefs = nil;
         return x;
     }
 
-    NSString *landscape = UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation) ? @"" : @"Landscape";
+    NSString *landscape = YES ? @"" : @"Landscape";
     landscape = [HPUtility deviceRotatable] ? landscape : @"";
 
 
@@ -790,6 +790,7 @@ NSDictionary *prefs = nil;
     {
         [[[EditorManager sharedManager] editorViewController] addRootIconListViewToUpdate:self];
         self.configured = YES;
+        
     }
 }
 
@@ -924,6 +925,7 @@ NSDictionary *prefs = nil;
 + (NSUInteger)iconColumnsForInterfaceOrientation:(NSInteger)arg1
 {
     // Bad method name
+
     // This method returns rows
 
 
@@ -934,7 +936,7 @@ NSDictionary *prefs = nil;
         return %orig(arg1);
     }
 
-    if (UIDeviceOrientationIsLandscape([UIDevice currentDevice].orientation))
+    if (NO)
     {
         return [[[HPDataManager sharedManager] currentConfiguration] integerForKey:@"HPThemeDefaultDockRows"]?:1;
     }
@@ -950,7 +952,7 @@ NSDictionary *prefs = nil;
         return %orig;
     }
 
-        if (UIDeviceOrientationIsLandscape([UIDevice currentDevice].orientation))
+        if (NO)
     {
         return [[[HPDataManager sharedManager] currentConfiguration] integerForKey:@"HPThemeDefaultDockColumns"]?:4;
     }
@@ -1596,14 +1598,17 @@ NSDictionary *prefs = nil;
 {
     id x = %orig;
 
-    self.iconLocation = @"Root";
-
     return x;
 }
 
 - (NSUInteger)numberOfPortraitRows
 {
     NSInteger x = %orig;
+
+    if ([self.iconLocation containsString:@"Folder"])
+    {
+        return 3;
+    }
 
     if (([self.iconLocation containsString:@"Dock"] // Only modify if 
             && ([[[HPDataManager sharedManager] currentConfiguration] integerForKey:@"HPdockConfigEnabled"]?:1) == 0) 
@@ -1639,6 +1644,10 @@ NSDictionary *prefs = nil;
     NSInteger x = %orig; // Reminder: Any tweak that comes before HomePlus alphabetically will get to this func before we do 
                          //           What this means is that we're not getting the iOS value in some cases. We also get the values from other tweaks, 
                          //           And to ensure compatibility, we need to thoroughly check the value %orig gives us. 
+    if ([self.iconLocation containsString:@"Folder"])
+    {
+        return 3;
+    }
 
     if (((_tcDockyInstalled && (x == 5 || x==100)) // If Docky is changing the values (I wrote docky's latest version, I know what its going to give)
 
@@ -1720,7 +1729,10 @@ NSDictionary *prefs = nil;
 - (UIEdgeInsets)portraitLayoutInsets
 {
     UIEdgeInsets x = %orig;
-
+    if ([self.iconLocation containsString:@"Folder"])
+    {
+        return x;
+    }
     if ([self.iconLocation isEqualToString:@"Dock"] && ([[[HPDataManager sharedManager] currentConfiguration] integerForKey:@"HPdockConfigEnabled"]?:1) == 0) return x;
 
     if ([self.iconLocation isEqualToString:@"FloatingDockSuggestions"] || [self.iconLocation isEqualToString:@"FloatingDock"])
@@ -1773,13 +1785,13 @@ NSDictionary *prefs = nil;
 
     if (!self.configured) 
     {
-        [[[EditorManager sharedManager] editorViewController] addRootIconListViewToUpdate:self];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(highlightView:) name:kHighlightViewNotificationName object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(layoutIconsNow) name:@"HPlayoutIconViews" object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(layoutIconsNowWithAnimation) name:@"HPlayoutIconViewsAnimated" object:nil];
         self.configured = YES;
         _rtConfigured = YES;
     }
+    [self layoutIconsNow];
     
 }
 %new 
@@ -1819,10 +1831,10 @@ NSDictionary *prefs = nil;
         x = @"Dock";
     //if ([x isEqualToString:@"Folder"]) return %orig;
 
-    NSString *landscape = UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation) ? @"" : @"Landscape";
+    NSString *landscape = YES ? @"" : @"Landscape";
     landscape = [HPUtility deviceRotatable] ? landscape : @"";
 
-    if (UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation))
+    if (YES)
     {
         if ([x containsString:@"Root"])
         {
@@ -1841,11 +1853,11 @@ NSDictionary *prefs = nil;
         x = @"Dock";
 
     //if ([x isEqualToString:@"Folder"]) return %orig;
-    NSString *landscape = UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation) ? @"" : @"Landscape";
+    NSString *landscape = YES ? @"" : @"Landscape";
     landscape = [HPUtility deviceRotatable] ? landscape : @"";
 
 
-    if (UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation))
+    if (YES)
     {
         if ([x containsString:@"Root"])
         {
@@ -1869,7 +1881,7 @@ NSDictionary *prefs = nil;
 {
     SBIconListFlowLayout *x = %orig; // SBIconLocation
     x.iconLocation = [[self iconLocation] substringFromIndex:14];
-    if ([x.iconLocation isEqualToString:@"RootWithSidebar"] && UIDeviceOrientationIsPortrait(self.orientation))
+    if ([x.iconLocation isEqualToString:@"RootWithSidebar"] && YES)
     {
         x.iconLocation = @"Root";
     }
@@ -1887,6 +1899,14 @@ NSDictionary *prefs = nil;
 
 - (id)layoutConfiguration
 {
+    //NSString *landscape = YES ? @"" : @"Landscape";
+
+
+    if ([self.iconLocation containsString:@"Root"])
+    {
+        self.iconLocation = @"Root";
+    }
+    
     SBIconListGridLayoutConfiguration *x = %orig;
     x.iconLocation = self.iconLocation;
     return x;
@@ -1903,9 +1923,9 @@ NSDictionary *prefs = nil;
         return 3;
     }
 
-    NSString *landscape = UIDeviceOrientationIsPortrait(arg1) ? @"" : @"Landscape";
+    NSString *landscape = YES ? @"" : @"Landscape";
 
-    if (UIDeviceOrientationIsPortrait(arg1))
+    if (YES)
     {
         if ([self.iconLocation containsString:@"Root"])
         {
@@ -1918,7 +1938,7 @@ NSDictionary *prefs = nil;
         self.iconLocation = @"Root";
     }
 
-    if ([self.iconLocation isEqualToString:@"Dock"] && UIDeviceOrientationIsLandscape(arg1))
+    if ([self.iconLocation isEqualToString:@"Dock"] && NO)
     {
         return [[[HPDataManager sharedManager] currentConfiguration] integerForKey:[NSString stringWithFormat:@"%@%@%@%@", @"HPThemeDefault", self.iconLocation, landscape, @"Columns"]] ?: (NSUInteger)x;
     }
@@ -1937,9 +1957,9 @@ NSDictionary *prefs = nil;
 
     if (!_rtConfigured) return kMaxColumnAmount;
 
-    NSString *landscape = UIDeviceOrientationIsPortrait(arg1) ? @"" : @"Landscape";
+    NSString *landscape = YES ? @"" : @"Landscape";
 
-    if (UIDeviceOrientationIsPortrait(arg1))
+    if (YES)
     {
         if ([self.iconLocation containsString:@"Root"])
         {
@@ -1947,7 +1967,7 @@ NSDictionary *prefs = nil;
         }
     }
 
-    if ([self.iconLocation isEqualToString:@"Dock"] && UIDeviceOrientationIsLandscape(arg1))
+    if ([self.iconLocation isEqualToString:@"Dock"] && NO)
     {
         return [[[HPDataManager sharedManager] currentConfiguration] integerForKey:[NSString stringWithFormat:@"%@%@%@%@", @"HPThemeDefault", self.iconLocation, landscape, @"Rows"]] ?: (NSUInteger)x;
     }

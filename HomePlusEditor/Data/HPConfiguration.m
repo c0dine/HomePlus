@@ -217,6 +217,8 @@
 
 - (BOOL)boolForKey:(NSString *)key
 {
+    if ([key isEqualToString:@"HPThemeDefaultForceRotation"])
+        return NO;
     return [[self.values objectForKey:key] boolValue];
 }
 

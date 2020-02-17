@@ -35,7 +35,7 @@
 
     if (self.topControlType == kSlider)
     {
-
+        // Nothing needs to be done
     }
     else if (self.topControlType == kCounter)
     {
@@ -83,7 +83,7 @@
 
     if (self.bottomControlType == kSlider)
     {
-
+        // Nothing needs to be done
     }
     else if (self.bottomControlType == kCounter)
     {
@@ -176,7 +176,8 @@
     CFStringRef notif = (__bridge CFStringRef)self.topNotification;
     CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
         notif, NULL, NULL, TRUE);
-    //[[NSNotificationCenter defaultCenter] postNotificationName:self.topNotification object:nil];
+        
+    [[NSNotificationCenter defaultCenter] postNotificationName:self.topNotification object:nil];
     if (self.topControlType == kCounter)
     {
         self.topTextField.text = [NSString stringWithFormat:@"%.0f", (CGFloat)((NSInteger)(floor([sender value])))];
@@ -198,7 +199,7 @@
         NULL,
         TRUE);
 
-    //[[NSNotificationCenter defaultCenter] postNotificationName:self.bottomNotification object:nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:self.bottomNotification object:nil];
     if (self.bottomControlType == kCounter)
     {
         self.bottomTextField.text = [NSString stringWithFormat:@"%.0f", (CGFloat)((NSInteger)(floor([sender value])))];
